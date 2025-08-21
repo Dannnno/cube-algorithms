@@ -1,0 +1,27 @@
+.cubePlayground {
+	margin: 0;
+	border: 1px solid black;
+	display: grid;
+	grid-template-columns: repeat(4, auto);
+	grid-template-rows: repeat(7, auto);
+	grid-template-areas:
+		"h h    h    h"
+		"b cube cube cube"
+		"b cube cube cube"
+		"b cube cube cube"
+		"b cube cube cube"
+		"b cube cube cube"
+		"b cube cube cube";
+	row-gap: 5px;
+	column-gap: 5px;
+	font-family: monospace;
+
+    .majorSettings {
+        grid-area: h;
+    }
+
+    .cube {
+        grid-area: cube;
+		padding: 10px;
+    }
+}

@@ -23,6 +23,15 @@
 			}
 		}
 
+		&:not(:hover) .actionButton {
+			display: none;
+		}
+
+		.actionButton {
+			width: 100%;
+			height: 100%;
+		}
+
 		margin: 0;
 		display: grid;
 		grid-template-columns: repeat(var(--side-size), $value-size);

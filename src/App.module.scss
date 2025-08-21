@@ -1,39 +1,64 @@
 .cubePlayground {
 	margin: 0;
-	border: 1px solid black;
 	display: grid;
 	grid-template-columns: repeat(4, auto);
 	grid-template-rows: repeat(7, auto);
 	grid-template-areas:
-		"h h    h    h"
-		"b cube cube cube"
-		"b cube cube cube"
-		"b cube cube cube"
-		"b cube cube cube"
-		"b cube cube cube"
-		"b cube cube cube";
+		"size rset pick"
+		"cube cube cube"
+		"cube cube cube"
+		"cube cube cube"
+		"cube cube cube"
+		"cube cube cube"
+		"cube cube cube";
 	row-gap: 5px;
 	column-gap: 5px;
-	font-family: monospace;
+	min-width: 800px;
 
-    .majorSettings {
-        grid-area: h;
+	.resize, .reset, .styleSelect {
+		border: 1px solid black;
+		padding: 5px;
+		display: flex;
+		flex: row nowrap;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+		max-width: 100%;
 
 		button {
-			width: 50px;
-			height: 50px;
+			padding: 5px;
+			width: 25px;
+			height: 25px;
 			background-color: #FFFFFF;
+			background-size: cover;
 
 			&:disabled {
 				background-color: #808080;
 			}
-
-			img {
-				width: 100%;
-				height: 100%;
-			}
 		}
-    }
+	}
+
+	.resize {
+        grid-area: size;
+
+		button {
+			background-image: url("/src/assets/progression.svg");
+		}
+	}
+
+	.reset {
+        grid-area: rset;
+		button {
+			background-image: url("/src/assets/cycle.svg");
+		}
+	}
+
+	.styleSelect {
+        grid-area: pick;
+		button {
+			background-image: url("/src/assets/cycle.svg");
+		}
+	}
 
     .cube {
         grid-area: cube;

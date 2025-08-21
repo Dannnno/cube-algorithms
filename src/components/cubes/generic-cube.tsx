@@ -1,5 +1,6 @@
-import { DeepReadonly } from "@/common";
+import { DeepReadonly } from "@common/generics";
 import { CubeData, CubeSide } from "@model/cube";
+import { CubeActions } from "./usePuzzleCube";
 
 /**
  * How to style a given cell in the cube
@@ -31,4 +32,8 @@ export interface IPrettyPuzzleCubeProps extends IReactCubeProps {
 	 * A mapping between a given cell value and how it should be styled.
 	 */
 	readonly styleMap?: PuzzleCubeCellStyleMap;
+	/**
+	 * How to take actions on a cube
+	 */
+	readonly cubeDispatch: React.Dispatch<CubeActions>;
 }

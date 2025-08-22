@@ -15,6 +15,13 @@ const App: React.FC<{}> = () => {
     () => getCubeSize(puzzleCube.cubeData), [puzzleCube.cubeData]
   );
 
+  const resetCube = useCallback(
+    () => cubeDispatch({
+      type: CubeActionType.ResetCube,
+    }), 
+    [cubeDispatch]
+  );
+
   const resizeCube = useCallback(() => {
     if (resizeEnabled && size !== calculatedSize) {
       cubeDispatch({
@@ -58,6 +65,9 @@ const App: React.FC<{}> = () => {
           </select>
           <button onClick={resizeCube} disabled={!resizeEnabled}>
             <img width={50} height={50} src="/src/assets/progression.svg"/>
+          </button>
+          <button onClick={resetCube}>
+            <img width={50} height={50} src="/src/assets/cycle.svg"/>
           </button>
         </div>
         <GeometrySidebar cubeDispatch={cubeDispatch} />

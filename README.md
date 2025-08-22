@@ -16,7 +16,7 @@ Algorithms and visualizations of how to solve 3D Puzzle Cubes
 -- [x] Slicing internal cube layers
 -- [ ] Refocusing cube faces
 -- [x] Resizing cube
--- [ ] Resetting cube
+-- [x] Resetting cube
 - [ ] Automatic puzzle solving
 - [ ] Algorithm searching
 - [ ] Algorithm storage

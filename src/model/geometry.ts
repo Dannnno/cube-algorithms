@@ -509,6 +509,100 @@ function _rotateCubeInternalSliceZ(
     return cube;
 }
 
+/**
+ * Refocus and rotate the cube such that a new face is in focus (i.e. is
+ * side #2)
+ * @param cube The cube to be refocused
+ * @param focusSideId The face that should be focused on
+ * @returns The new cube layout data
+ */
+export function refocusCube(
+    cube: DeepReadonly<CubeData>, focusSideId: CubeSide
+): CubeData {
+    const [newCube, size, _] = _setupManipulation(cube, 0);
+    /**
+     * For our purposes, 'focus' means 'become face #2'
+     *         +-------+
+     *         | 5 5 5 |
+     *         | 5 5 5 |
+     *         | 5 5 5 |
+     * +-------+-------+-------+-------+
+     * | 1 1 1 | 2 2 2 | 3 3 3 | 4 4 4 |
+     * | 1 1 1 | 2 2 2 | 3 3 3 | 4 4 4 |
+     * | 1 1 1 | 2 2 2 | 3 3 3 | 4 4 4 |
+     * +-------+-------+-------+-------+
+     *         | 6 6 6 |
+     *         | 6 6 6 |
+     *         | 6 6 6 |
+     *         +-------+
+     */
+
+    const [side1, side2, side3, side4, side5, side6] = newCube;
+    const xAxisCycle = [side1, side2, side3, side4];
+    
+    const fixFace = (face: CubeSide, numRotations: number) => {
+        numRotations = _normalizeRotations(numRotations);
+        _rotateCubeFace(newCube, size, face, numRotations, true);
+    };
+
+    const numPopsDict = {
+        [CubeSide.Left]: [1, RotationAmount.CounterClockwise, RotationAmount.Clockwise],
+        [CubeSide.Front]: [0, 0, 0],
+        [CubeSide.Right]: [3, RotationAmount.Clockwise, RotationAmount.CounterClockwise],
+        [CubeSide.Back]: [2, RotationAmount.Halfway, RotationAmount.HalfwayReverse],
+    }
+
+    switch (focusSideId) {
+        case CubeSide.Left:
+        case CubeSide.Front:
+        case CubeSide.Right:
+        case CubeSide.Back: {
+            const [numPops, topFixRotation, bottomFixRotation] = numPopsDict[focusSideId];
+            let ix = 0;
+            while (ix < numPops) {
+                xAxisCycle.unshift(xAxisCycle.pop()!);
+                ++ix;
+            }
+            for (ix = 0; ix < 4; ++ix) {
+                newCube[ix] = xAxisCycle[ix];
+            }
+            // Then make sure the orientation of the top and bottom get corrected
+            fixFace(CubeSide.Top, topFixRotation);
+            fixFace(CubeSide.Bottom, bottomFixRotation);
+            break;
+        }
+        case CubeSide.Top:
+            // Place the faces in the right places
+            newCube[CubeSide.Front-1] = side5; // Side2 (Front)
+            newCube[CubeSide.Back-1] = side6; // Side4 (Back)
+            newCube[CubeSide.Top-1] = side4; // Side5 (Top)
+            newCube[CubeSide.Bottom-1] = side2; // Side6 (Bottom)
+
+            // Then fix the orientation
+            fixFace(CubeSide.Left, RotationAmount.Clockwise);
+            fixFace(CubeSide.Right, RotationAmount.CounterClockwise);
+            fixFace(CubeSide.Back, RotationAmount.Halfway);
+            fixFace(CubeSide.Top, RotationAmount.Halfway);
+            break;
+        case CubeSide.Bottom:
+            // Place the faces in the right places
+            newCube[CubeSide.Front-1] = side6; // Side2 (Front)
+            newCube[CubeSide.Back-1] = side5; // Side4 (Back)
+            newCube[CubeSide.Top-1] = side2; // Side5 (Top)
+            newCube[CubeSide.Bottom-1] = side4; // Side6 (Bottom)
+
+            // Then fix the orientation
+            fixFace(CubeSide.Left, RotationAmount.CounterClockwise);
+            fixFace(CubeSide.Right, RotationAmount.Clockwise);
+            fixFace(CubeSide.Back, RotationAmount.Halfway);
+            fixFace(CubeSide.Bottom, RotationAmount.Halfway);
+            break;
+        default:
+            forceNever(focusSideId);
+    }
+    return newCube;
+}
+
 function _setupManipulation(
     cube: DeepReadonly<CubeData>, numRotations: number
 ) : [CubeData, number, RotationAmount];

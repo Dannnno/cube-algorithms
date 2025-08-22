@@ -60,6 +60,16 @@ export const Credits: React.FC<{}> = props => {
                 retrievedFromUrl="https://game-icons.net"
                 license={License.CcBy30}
             />
+            <ImageCreditRow 
+                resource="/src/assets/eye-target.svg"
+                resourceName="Eye target icon"
+                resourceUrl="https://game-icons.net/1x1/delapouite/eye-target.html"
+                resourceCreator="Delapouite"
+                resourceCreatorUrl="https://delapouite.com/"
+                retrievedFrom="game-icons.net"
+                retrievedFromUrl="https://game-icons.net"
+                license={License.CcBy30}
+            />
           </tbody>
         </table>
       </div>

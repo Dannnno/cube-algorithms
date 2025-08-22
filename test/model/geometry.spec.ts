@@ -1,6 +1,7 @@
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, beforeAll } from "vitest";
 import { 
-    at, getCubeSize, rotateCubeFace, rotateCubeInternalSlice, RotationAmount, 
+    at, getCubeSize, refocusCube, rotateCubeFace, rotateCubeInternalSlice ,
+    RotationAmount, 
 } from "../../src/model/geometry";
 import { checkCube } from "./utility";
 import { CubeAxis, CubeData, CubeSide } from "../../src/model/cube";
@@ -311,7 +312,6 @@ function getRotateCubeSliceTestCaseName(
     return `${mutated}Rotate ${axis}-axis (${sliceStart}+${sliceSize}) by ${rotName} of ${size}x${size} cube`;
 }
 
-
 describe("rotateCubeInternalSlice", () => {
     const baseCube = [
         [1, 1, 1, 1, 1, 1, 1, 1, 1], 
@@ -506,5 +506,151 @@ describe("rotateCubeInternalSlice", () => {
         const result = rotateCubeInternalSlice(cube, axis, sliceStart, sliceSize, rotation);
         checkCube(result, expectedCube);
     });
+});
 
+interface IRefocusCubeTestCase {
+    readonly name: string;
+    readonly cube: DeepReadonly<CubeData>,
+    readonly focusSide: CubeSide;
+    readonly expectedCube: DeepReadonly<CubeData>
+}
+
+function getRefocusCubeTestCaseName(
+    testCase: Omit<IRefocusCubeTestCase, "name">
+): string {
+    const { cube, focusSide } = testCase;
+    const size = getCubeSize(cube);
+    let sideName: string;
+    switch (focusSide) {
+        case CubeSide.Front: sideName = "front"; break;
+        case CubeSide.Back: sideName = "back"; break;
+        case CubeSide.Left: sideName = "left"; break;
+        case CubeSide.Right: sideName = "right"; break;
+        case CubeSide.Top: sideName = "top"; break;
+        case CubeSide.Bottom: sideName = "bottom"; break;
+        default: forceNever(focusSide);
+    }
+    return `Focus the ${sideName} side of ${size}x${size} cube`;
+}
+
+
+describe("refocusCube", () => {
+    const baseCube = [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1], 
+        [2, 2, 2, 2, 2, 2, 2, 2, 2], 
+        [3, 3, 3, 3, 3, 3, 3, 3, 3], 
+        [4, 4, 4, 4, 4, 4, 4, 4, 4], 
+        [5, 5, 5, 5, 5, 5, 5, 5, 5], 
+        [6, 6, 6, 6, 6, 6, 6, 6, 6]
+    ];
+
+    const rcf = (
+        cubeData: DeepReadonly<CubeData>, 
+        sideId: CubeSide
+    ) => rotateCubeFace(cubeData, sideId, 1);
+    const rcs = (
+        cube: DeepReadonly<CubeData>, 
+        axis: CubeAxis
+    ) => rotateCubeInternalSlice(cube, axis, 1, 1, 1);
+
+    const testCube = 
+        rcf(
+            rcf(
+                rcf(
+                    rcf(
+                        rcf(
+                            rcf(
+                                rcs(
+                                    rcs(
+                                        rcs(baseCube, "X"), "Y"
+                                    ), "Z"
+                                ), 1
+                            ), 2
+                        ), 3
+                    ), 4
+                ), 5
+            ), 6
+        );
+
+    // Just make sure that our test cube is set up the way we expect it to be
+    beforeAll(() => 
+        checkCube(
+            testCube,
+            [
+                [ 5, 1, 3, 2, 1, 4, 6, 3, 6 ],
+                [ 5, 2, 4, 6, 6, 3, 4, 2, 6 ],
+                [ 5, 1, 1, 5, 3, 4, 2, 3, 6 ],
+                [ 5, 2, 2, 5, 5, 5, 3, 4, 2 ],
+                [ 1, 1, 4, 6, 2, 5, 2, 6, 3 ],
+                [ 1, 3, 3, 6, 4, 4, 1, 1, 4 ]
+            ]
+        )
+    );
+
+    const tests: Omit<IRefocusCubeTestCase, "name">[] = [
+        { cube: testCube, focusSide: CubeSide.Left, expectedCube: [
+                [ 5, 2, 2, 5, 5, 5, 3, 4, 2 ],
+                [ 5, 1, 3, 2, 1, 4, 6, 3, 6 ],
+                [ 5, 2, 4, 6, 6, 3, 4, 2, 6 ],
+                [ 5, 1, 1, 5, 3, 4, 2, 3, 6 ],
+                [ 4, 5, 3, 1, 2, 6, 1, 6, 2 ],
+                [ 1, 6, 1, 1, 4, 3, 4, 4, 3 ]
+            ]
+        },
+        { cube: testCube, focusSide: CubeSide.Front, expectedCube: [
+                [ 5, 1, 3, 2, 1, 4, 6, 3, 6 ],
+                [ 5, 2, 4, 6, 6, 3, 4, 2, 6 ],
+                [ 5, 1, 1, 5, 3, 4, 2, 3, 6 ],
+                [ 5, 2, 2, 5, 5, 5, 3, 4, 2 ],
+                [ 1, 1, 4, 6, 2, 5, 2, 6, 3 ],
+                [ 1, 3, 3, 6, 4, 4, 1, 1, 4 ]
+            ]
+        },
+        { cube: testCube, focusSide: CubeSide.Right, expectedCube: [
+                [ 5, 2, 4, 6, 6, 3, 4, 2, 6 ],
+                [ 5, 1, 1, 5, 3, 4, 2, 3, 6 ],
+                [ 5, 2, 2, 5, 5, 5, 3, 4, 2 ],
+                [ 5, 1, 3, 2, 1, 4, 6, 3, 6 ],
+                [ 2, 6, 1, 6, 2, 1, 3, 5, 4 ],
+                [ 3, 4, 4, 3, 4, 1, 1, 6, 1 ]
+            ]
+        },
+        { cube: testCube, focusSide: CubeSide.Back, expectedCube: [
+                [ 5, 1, 1, 5, 3, 4, 2, 3, 6 ],
+                [ 5, 2, 2, 5, 5, 5, 3, 4, 2 ],
+                [ 5, 1, 3, 2, 1, 4, 6, 3, 6 ],
+                [ 5, 2, 4, 6, 6, 3, 4, 2, 6 ],
+                [ 3, 6, 2, 5, 2, 6, 4, 1, 1 ],
+                [ 4, 1, 1, 4, 4, 6, 3, 3, 1 ]
+            ]
+        },
+        { cube: testCube, focusSide: CubeSide.Top, expectedCube: [
+                [ 6, 2, 5, 3, 1, 1, 6, 4, 3 ],
+                [ 1, 1, 4, 6, 2, 5, 2, 6, 3 ],
+                [ 1, 4, 6, 1, 3, 3, 5, 5, 2 ],
+                [ 4, 1, 1, 4, 4, 6, 3, 3, 1 ],
+                [ 2, 4, 3, 5, 5, 5, 2, 2, 5 ],
+                [ 5, 2, 4, 6, 6, 3, 4, 2, 6 ]
+            ]
+        },
+        { cube: testCube, focusSide: CubeSide.Bottom, expectedCube: [
+                [ 3, 4, 6, 1, 1, 3, 5, 2, 6 ],
+                [ 1, 3, 3, 6, 4, 4, 1, 1, 4 ],
+                [ 2, 5, 5, 3, 3, 1, 6, 4, 1 ],
+                [ 3, 6, 2, 5, 2, 6, 4, 1, 1 ],
+                [ 5, 2, 4, 6, 6, 3, 4, 2, 6 ],
+                [ 2, 4, 3, 5, 5, 5, 2, 2, 5 ]
+            ]
+        }
+    ];
+
+    it.each(
+        tests.map(testCase => ({
+            ...testCase, name: getRefocusCubeTestCaseName(testCase)
+        }))
+    )("$name", testCase => {
+        const { cube, expectedCube, focusSide } = testCase;
+        const result = refocusCube(cube, focusSide);
+        checkCube(result, expectedCube);
+    });
 });

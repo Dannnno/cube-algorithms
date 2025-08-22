@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { CubeActions, CubeActionType } from "@components/cubes";
 import { CubeAxis, CubeSide } from "@model/cube";
 import { forceNever } from "@/common";
@@ -27,6 +27,13 @@ export const GeometrySidebar: React.FC<IGeometrySidebarProps> = props => {
             <RotateButtonRow {...props} axis={"X"} offsetStart={1} />
             <RotateButtonRow {...props} axis={"Y"} offsetStart={1} />
             <RotateButtonRow {...props} axis={"Z"} offsetStart={1} />
+            
+            <FocusButton {...props} sideId={CubeSide.Left} />
+            <FocusButton {...props} sideId={CubeSide.Front} />
+            <FocusButton {...props} sideId={CubeSide.Right} />
+            <FocusButton {...props} sideId={CubeSide.Back} />
+            <FocusButton {...props} sideId={CubeSide.Top} />
+            <FocusButton {...props} sideId={CubeSide.Bottom} />
         </div>
     );
 };
@@ -136,5 +143,28 @@ const RotateButton: React.FC<RotateButtonProps> = props => {
         </button>
     )
 };
+
+interface IFocusButtonProps extends IGeometrySidebarProps {
+    readonly sideId: CubeSide;
+}
+
+const FocusButton: React.FC<IFocusButtonProps> = props => {
+    const { cubeDispatch, sideId } = props;
+    const callback = useCallback(() => {
+        cubeDispatch({
+            type: CubeActionType.RotateCube,
+            focusFace: sideId
+        });
+    }, [cubeDispatch, sideId]);
+
+    return (
+        <div>
+            <h3>Focus Face {sideId}</h3>
+            <button onClick={callback} className={rotateButton}>
+                <img src="/src/assets/eye-target.svg" />
+            </button>
+        </div>
+    );
+}
 
 export default GeometrySidebar;

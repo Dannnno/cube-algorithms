@@ -1,12 +1,12 @@
-import React, {  } from 'react';
+import React, { } from 'react';
 import styles, { 
-  cubePlayground, majorSettings, cube
+  cubePlayground, majorSettings, cube 
 } from './App.module.scss';
 import CubePicker, { usePuzzleCube } from '@components/cubes';
-import { Credits } from '@components/workflow';
+import { Credits, GeometrySidebar } from '@components/workflow';
 
 const App: React.FC<{}> = () => {
-  const [puzzleCube, _cubeDispatch] = usePuzzleCube(3);
+  const [puzzleCube, cubeDispatch] = usePuzzleCube();
 
   return (
     <>
@@ -16,6 +16,7 @@ const App: React.FC<{}> = () => {
         <div className={cube}>
           <CubePicker {...puzzleCube} />
         </div>
+        <GeometrySidebar cubeDispatch={cubeDispatch} />
       </div>
       <Credits />
     </>

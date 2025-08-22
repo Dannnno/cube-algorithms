@@ -7,7 +7,7 @@ import { getCubeSize } from './geometry';
 /**
  * A side of a cube
  */
-export enum CubeSide {
+export const enum CubeSide {
     Front = 2,
     Back = 4,
     Left = 1,

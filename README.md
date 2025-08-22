@@ -12,7 +12,7 @@ Algorithms and visualizations of how to solve 3D Puzzle Cubes
 ### Algorithm
 - [ ] Cube manipulation
 -- [ ] Rotating the whole cube
--- [ ] Rotating cube faces
+-- [x] Rotating cube faces
 -- [ ] Slicing internal cube layers
 -- [ ] Refocusing cube faces
 -- [ ] Resizing cube

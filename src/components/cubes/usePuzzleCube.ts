@@ -2,7 +2,7 @@ import React, { useReducer } from "react";
 import { CubeAxis, CubeData, CubeSide } from "@model/cube";
 import { forceNever } from "@/common";
 import { IReactCubeProps } from "@components/cubes";
-import { getCubeSize } from "@/model/geometry";
+import { getCubeSize, rotateCubeFace } from "@model/geometry";
 
 /**
  * Actions that can be taken on a cube
@@ -117,6 +117,12 @@ const puzzleReducer: React.Reducer<IReactCubeProps, CubeActions> =
         let size: number = getCubeSize(state.cubeData);
         switch (action.type) {
             case CubeActionType.RotateFace:
+                cubeData = rotateCubeFace(
+                    state.cubeData,
+                    action.sideId,
+                    action.rotationCount
+                );
+                break;
             case CubeActionType.RotateInternal:
             case CubeActionType.ResizeCube:
             case CubeActionType.ResetCube:

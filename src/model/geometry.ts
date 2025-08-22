@@ -285,6 +285,33 @@ function _rotateCubeFace(
     return cubeData;
 }
 
+/**
+ * Rotate internal slices of a cube, ignoring any affects on perpendicular faces
+ * @param cube The cube being rotated
+ * @param axis The axis of rotation
+ * @param offsetStart Which slice to rotate
+ * @param numSlices The number of slices to rotate
+ * @param numRotations The number of times to rotate it
+ * @returns The new cube data
+ */
+export function rotateCubeInternalSlice(
+    cube: DeepReadonly<CubeData>, 
+    axis: CubeAxis, 
+    offsetStart: number, 
+    numSlices: number,
+    numRotations: number
+): CubeData {
+    const [newCube, cubeSize, numTurns] = _setupManipulation(
+        cube, numRotations
+    );
+
+    const result = _rotateCubeInternalSlice(
+        newCube, cubeSize, axis, offsetStart, numSlices, numTurns
+    );
+    assertIsValidCube(result, cubeSize);
+    return result;
+}
+
 function _rotateCubeInternalSlice(
     cube: CubeData, 
     cubeSize: number,

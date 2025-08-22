@@ -6,7 +6,7 @@
     justify-content: center;
     align-items: center;
     justify-items: center;
-    width: 150px;
+    min-width: 250px;
 }
 
 .buttonRow {
@@ -21,7 +21,11 @@
 .rotateButton {
     width: 50px;
     height: 50px;
-    background-color: #808080;
+    background-color: #FFFFFF;
+
+    &:disabled {
+        background-color: #808080;
+    }
 
     img {
         width: 100%;

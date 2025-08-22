@@ -2,7 +2,9 @@ import React, { useReducer } from "react";
 import { CubeAxis, CubeData, CubeSide } from "@model/cube";
 import { forceNever } from "@/common";
 import { IReactCubeProps } from "@components/cubes";
-import { getCubeSize, rotateCubeFace } from "@model/geometry";
+import { 
+    getCubeSize, rotateCubeFace, rotateCubeInternalSlice 
+} from "@model/geometry";
 
 /**
  * Actions that can be taken on a cube
@@ -124,10 +126,19 @@ const puzzleReducer: React.Reducer<IReactCubeProps, CubeActions> =
                 );
                 break;
             case CubeActionType.RotateInternal:
+                cubeData = rotateCubeInternalSlice(
+                    state.cubeData,
+                    action.axis,
+                    action.offsetIndex,
+                    action.offsetSize,
+                    action.rotationCount
+                );
+                break;
             case CubeActionType.ResizeCube:
             case CubeActionType.ResetCube:
             case CubeActionType.RotateCube:
                 throw new Error("Not yet implemented");
+                break;
             default:
                 forceNever(action);
         }

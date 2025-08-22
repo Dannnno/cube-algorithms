@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 import { CubeActions, CubeActionType } from "@components/cubes";
-import { CubeSide } from "@model/cube";
+import { CubeAxis, CubeSide } from "@model/cube";
 import { forceNever } from "@/common";
 import styles, { 
     sidebar, rotateButton, buttonRow
 } from "./geometry-buttons.module.scss";
+import { RotationAmount } from "@/model/geometry";
 
 interface IGeometrySidebarProps {
     readonly cubeDispatch: React.Dispatch<CubeActions>;
@@ -16,12 +17,16 @@ interface IGeometrySidebarProps {
 export const GeometrySidebar: React.FC<IGeometrySidebarProps> = props => {
     return (
         <div className={sidebar}>
-            <RotateButtonRow {...props} sideId={1} />
-            <RotateButtonRow {...props} sideId={2} />
-            <RotateButtonRow {...props} sideId={3} />
-            <RotateButtonRow {...props} sideId={4} />
-            <RotateButtonRow {...props} sideId={5} />
-            <RotateButtonRow {...props} sideId={6} />
+            <RotateButtonRow {...props} sideId={CubeSide.Left} />
+            <RotateButtonRow {...props} sideId={CubeSide.Front} />
+            <RotateButtonRow {...props} sideId={CubeSide.Right} />
+            <RotateButtonRow {...props} sideId={CubeSide.Back} />
+            <RotateButtonRow {...props} sideId={CubeSide.Top} />
+            <RotateButtonRow {...props} sideId={CubeSide.Bottom} />
+
+            <RotateButtonRow {...props} axis={"X"} offsetStart={1} />
+            <RotateButtonRow {...props} axis={"Y"} offsetStart={1} />
+            <RotateButtonRow {...props} axis={"Z"} offsetStart={1} />
         </div>
     );
 };
@@ -30,16 +35,32 @@ enum Direction {
     Clockwise,
     CounterClockwise
 }
+
 interface IRotateFaceButtonRowProps extends IGeometrySidebarProps {
     readonly sideId: CubeSide;
+    
 }
 
-const RotateButtonRow: React.FC<IRotateFaceButtonRowProps> = props => {
-    const { sideId } = props;
-    const heading = useMemo(
-        () => <h3>Rotate Face {props.sideId}</h3>, 
-        [sideId]
-    );
+interface IRotateSliceButtonRowProps extends IGeometrySidebarProps {
+    readonly axis: CubeAxis;
+    readonly offsetStart: number;
+    readonly offsetSize?: number;
+}
+
+type RotateButtonRowProps = IRotateFaceButtonRowProps | IRotateSliceButtonRowProps;
+
+const RotateButtonRow: React.FC<RotateButtonRowProps> = props => {
+    const heading = useMemo(() => {
+        if ("sideId" in props) {
+            return <h3>Rotate Face {props.sideId}</h3>
+        } else {
+            return (
+                <>
+                    <h3>Rotate {props.axis} Axis</h3>
+                </>
+            );
+        }
+    }, [props]);
 
     return (
         <div>
@@ -48,22 +69,26 @@ const RotateButtonRow: React.FC<IRotateFaceButtonRowProps> = props => {
                 <RotateButton 
                     {...props} 
                     direction={Direction.Clockwise} 
-                    numRotations={1} 
+                    numRotations={RotationAmount.Clockwise} 
                 />
                 <RotateButton 
                     {...props} 
                     direction={Direction.CounterClockwise} 
-                    numRotations={3} 
+                    numRotations={RotationAmount.CounterClockwise} 
                 />
             </div>
         </div>
     );
 };
 
-interface IRotateFaceButtonProps extends IRotateFaceButtonRowProps {
+interface IRotateButtonProps {
     readonly direction: Direction;
     readonly numRotations: number;
 }
+
+type RotateFaceButtonProps = IRotateButtonProps & IRotateFaceButtonRowProps;
+type RotateSliceButtonProps = IRotateButtonProps & IRotateSliceButtonRowProps;
+type RotateButtonProps = RotateFaceButtonProps | RotateSliceButtonProps;
 
 function useRotationIcon(direction: Direction): string {
     return useMemo(() => {
@@ -78,18 +103,32 @@ function useRotationIcon(direction: Direction): string {
     }, [direction]);
 }
 
-const RotateButton: React.FC<IRotateFaceButtonProps> = props => {
-    const { direction, numRotations, cubeDispatch, sideId } = props;
+const RotateButton: React.FC<RotateButtonProps> = props => {
+    const { direction, numRotations, cubeDispatch } = props;
 
     const icon = useRotationIcon(direction);
 
-    const callback = useCallback(() => 
-        cubeDispatch({
-            type: CubeActionType.RotateFace,
-            sideId: sideId,
-            rotationCount: numRotations
-        }),
-        [cubeDispatch, sideId, numRotations]);
+    const callback = useMemo(() => {
+        if ("sideId" in props) {
+            return () => {
+                cubeDispatch({
+                    type: CubeActionType.RotateFace,
+                    sideId: props.sideId,
+                    rotationCount: numRotations
+                });
+            };
+        } else {
+            return () => {
+                cubeDispatch({
+                    type: CubeActionType.RotateInternal,
+                    axis: props.axis,
+                    offsetIndex: props.offsetStart,
+                    offsetSize: props.offsetSize ?? 1,
+                    rotationCount: numRotations
+                });
+            };
+        }
+    }, [cubeDispatch, props]);
 
     return (
         <button onClick={callback} className={rotateButton}>

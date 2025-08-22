@@ -6,7 +6,7 @@ Algorithms and visualizations of how to solve 3D Puzzle Cubes
 - [x] Flattened cube
 - [ ] 3D cube
 - [ ] Circular "chords"
-- [ ] Multiple cube sizes (2x2 through 9x9)
+- [x] Multiple cube sizes (2x2 through 9x9)
 - [ ] Picture/pattern cubes
 
 ### Algorithm
@@ -15,7 +15,7 @@ Algorithms and visualizations of how to solve 3D Puzzle Cubes
 -- [x] Rotating cube faces
 -- [x] Slicing internal cube layers
 -- [ ] Refocusing cube faces
--- [ ] Resizing cube
+-- [x] Resizing cube
 -- [ ] Resetting cube
 - [ ] Automatic puzzle solving
 - [ ] Algorithm searching

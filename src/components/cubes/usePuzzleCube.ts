@@ -3,7 +3,7 @@ import { CubeAxis, CubeData, CubeSide } from "@model/cube";
 import { forceNever } from "@/common";
 import { IReactCubeProps } from "@components/cubes";
 import { 
-    getCubeSize, rotateCubeFace, rotateCubeInternalSlice 
+    rotateCubeFace, rotateCubeInternalSlice 
 } from "@model/geometry";
 
 /**
@@ -116,7 +116,6 @@ function buildCubeOfSize(size: number): CubeData {
 const puzzleReducer: React.Reducer<IReactCubeProps, CubeActions> = 
     (state: IReactCubeProps, action: CubeActions) => {
         let cubeData: CubeData;
-        let size: number = getCubeSize(state.cubeData);
         switch (action.type) {
             case CubeActionType.RotateFace:
                 cubeData = rotateCubeFace(
@@ -135,12 +134,13 @@ const puzzleReducer: React.Reducer<IReactCubeProps, CubeActions> =
                 );
                 break;
             case CubeActionType.ResizeCube:
+                cubeData = buildCubeOfSize(action.newSize);
+                break;
             case CubeActionType.ResetCube:
             case CubeActionType.RotateCube:
                 throw new Error("Not yet implemented");
-                break;
             default:
                 forceNever(action);
         }
-        return { cubeData, size };
+        return { cubeData };
 };

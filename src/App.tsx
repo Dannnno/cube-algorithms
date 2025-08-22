@@ -3,6 +3,7 @@ import styles, {
   cubePlayground, majorSettings, cube
 } from './App.module.scss';
 import CubePicker, { usePuzzleCube } from '@components/cubes';
+import { Credits } from '@components/workflow';
 
 const App: React.FC<{}> = () => {
   const [puzzleCube, _cubeDispatch] = usePuzzleCube(3);
@@ -16,6 +17,7 @@ const App: React.FC<{}> = () => {
           <CubePicker {...puzzleCube} />
         </div>
       </div>
+      <Credits />
     </>
   )
 };

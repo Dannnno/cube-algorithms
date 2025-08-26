@@ -4,16 +4,15 @@ import styles, {
 } from './flat-cube.module.scss';
 import { 
 	CubeAxis, CubeCellValue, CubeSide, CubeSideData, forEachCellOnSide, 
-	forEachSide 
+	forEachSide , getCubeSize
 } from '@model/cube';
 import { 
 	IPrettyPuzzleCubeProps, PuzzleCubeCellStyleMap 
 } from './generic-cube';
-import { getCubeSize } from '@model/geometry';
 import { DeepReadonly, forceNever } from '@/common';
 import {
-	SliceDirection, SliceRotationButton, FaceRotationDirection, FaceRotationButton, 
-	FocusFaceButton
+	SliceDirection, SliceRotationButton, FaceRotationDirection, 
+	FaceRotationButton, FocusFaceButton
 } from '../workflow/';
 import { CubeActions } from './usePuzzleCube';
 

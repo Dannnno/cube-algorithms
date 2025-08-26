@@ -1,9 +1,7 @@
 import { expect } from "vitest";
-
 import { 
-    CubeData, CubeSide, CubeSideData
+    CubeData, CubeSide, CubeSideData, getCubeSize
 } from "../../src/model/cube";
-import { getCubeSize } from "../../src/model/geometry";
 import { DeepReadonly } from "../../src/common/generics";
 
 export function checkCube(

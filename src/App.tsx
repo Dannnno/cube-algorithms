@@ -7,7 +7,7 @@ import {
 } from '@components/cubes';
 import { Credits } from '@components/workflow';
 import { forceNever, isBoundedInteger } from '@/common';
-import { getCubeSize } from '@model/geometry';
+import { getCubeSize } from '@model/cube';
 
 const App: React.FC<{}> = () => {
   const [size, setSize] = useState(3);

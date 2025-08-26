@@ -1,6 +1,6 @@
 import { DeepReadonly, forceNever } from "@/common";
 import { 
-    CubeSide, CubeCellValue, CubeSideData, CubeData, 
+    CubeSide, CubeCellValue, CubeSideData, CubeData, getCubeSize,
     assertIsValidCube, assertIsValidCubeCell, CubeAxis,
 } from "./cube";
 
@@ -22,15 +22,6 @@ export const enum RotationAmount {
     ThreeQuarter = 3,
     /** Rotate three times counter-clockwise */
     ThreeQuarterReverse = 1
-}
-
-/**
- * Get the cube size
- * @param cube The cube whose side needs to be checked
- * @returns The cube's size (as the length of one edge)
- */
-export function getCubeSize(cube: DeepReadonly<CubeData>): number {
-    return Math.sqrt(cube[0].length);
 }
 
 /**

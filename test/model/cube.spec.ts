@@ -3,9 +3,37 @@ import { expect, describe, it } from "vitest";
 import { 
     assertIsValidCube, assertIsValidCubeCell, 
     forEachCellOnSide, 
-    forEachSide
+    forEachSide,
+    getCubeSize
 } from "../../src/model/cube";
 import { LoopStatus } from "../../src/common/iterables";
+
+describe("getCubeSize", () => {
+    it("calculates the size of a 2x2", () => 
+        expect(getCubeSize(
+            [
+                [1, 1, 1, 1], 
+                [2, 2, 2, 2], 
+                [3, 3, 3, 3], 
+                [4, 4, 4, 4], 
+                [5, 5, 5, 5], 
+                [6, 6, 6, 6]
+            ]
+        )).toBe(2)
+    );
+    it("calculates the size of a 3x3", () => 
+        expect(getCubeSize(
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1, 1], 
+                [2, 2, 2, 2, 2, 2, 2, 2, 2], 
+                [3, 3, 3, 3, 3, 3, 3, 3, 3], 
+                [4, 4, 4, 4, 4, 4, 4, 4, 4], 
+                [5, 5, 5, 5, 5, 5, 5, 5, 5], 
+                [6, 6, 6, 6, 6, 6, 6, 6, 6]
+            ]
+        )).toBe(3)
+    );
+});
 
 describe("assertIsValidCubeCell", () => {
     it("Catches non-integers", () => 

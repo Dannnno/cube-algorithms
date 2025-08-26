@@ -1,36 +1,15 @@
 import React, { useCallback, useMemo } from "react";
 import { CubeActions, CubeActionType } from "@components/cubes";
-import { CubeAxis, CubeSide } from "@model/cube";
-import { assert, forceNever } from "@/common";
+import { 
+    CubeAxis, CubeSide, FaceRotationDirection, SliceDirection
+ } from "@model/cube";
+import { forceNever } from "@/common";
 import styles, { 
     clockwise, antiClockwise, sliceUp, sliceDown, sliceLeft, sliceRight,
     actionButton, focusFace, 
 } from "./geometry-buttons.module.scss";
 import { RotationAmount } from "@model/geometry";
 
-/**
- * The direction to rotate a face
- */
-export enum FaceRotationDirection {
-    /** Rotate the face clockwise */
-    Clockwise,
-    /** Rotate the face counter-clockwise */
-    CounterClockwise
-}
-
-/**
- * The direction to rotate an internal layer (slice)
- */
-export enum SliceDirection {
-    /** Rotate the face upwards, i.e. towards row 0 */
-    Up,
-    /** Rotate the face downwards, i.e. towards row N */
-    Down,
-    /** Rotate the face to the left, i.e. towards col 0 */
-    Left,
-    /** Rotate the face to the right, i.e. towards col N */
-    Right
-}
 
 interface IFaceRotationButtonProps {
     readonly faceId: CubeSide;

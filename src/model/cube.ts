@@ -2,7 +2,6 @@ import {
     DeepReadonly, Tuple, forEach, LoopStatus, assert, isBoundedInteger, 
     isPositiveInteger 
 } from '@/common';
-import { getCubeSize } from './geometry';
 
 /**
  * A side of a cube
@@ -19,6 +18,28 @@ export const enum CubeSide {
  * An internal axis of the cube
  */
 export type CubeAxis = "X" | "Y" | "Z";
+/**
+ * The direction to rotate a face
+ */
+export enum FaceRotationDirection {
+    /** Rotate the face clockwise */
+    Clockwise,
+    /** Rotate the face counter-clockwise */
+    CounterClockwise
+}
+/**
+ * The direction to rotate an internal layer (slice)
+ */
+export enum SliceDirection {
+    /** Rotate the face upwards, i.e. towards row 0 */
+    Up,
+    /** Rotate the face downwards, i.e. towards row N */
+    Down,
+    /** Rotate the face to the left, i.e. towards col 0 */
+    Left,
+    /** Rotate the face to the right, i.e. towards col N */
+    Right
+}
 /**
  * The value at a given spot in the cube
  */
@@ -144,4 +165,13 @@ export function forEachCellOnSide(
     return forEach(side, (cell, ix) => 
         callback(Math.floor(ix / size), ix % size, cell)
     );
+}
+
+/**
+ * Get the cube size
+ * @param cube The cube whose side needs to be checked
+ * @returns The cube's size (as the length of one edge)
+ */
+export function getCubeSize(cube: DeepReadonly<CubeData>): number {
+    return Math.sqrt(cube[0].length);
 }

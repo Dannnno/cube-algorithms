@@ -1,39 +1,12 @@
 import { expect, describe, it, beforeAll } from "vitest";
 import { 
-    at, getCubeSize, refocusCube, rotateCubeFace, rotateCubeInternalSlice ,
+    at, refocusCube, rotateCubeFace, rotateCubeInternalSlice ,
     RotationAmount, 
 } from "../../src/model/geometry";
 import { checkCube } from "./utility";
-import { CubeAxis, CubeData, CubeSide } from "../../src/model/cube";
+import { CubeAxis, CubeData, CubeSide, getCubeSize } from "../../src/model/cube";
 import { DeepReadonly, forceNever } from "../../src/common";
 
-
-describe("getCubeSize", () => {
-    it("calculates the size of a 2x2", () => 
-        expect(getCubeSize(
-            [
-                [1, 1, 1, 1], 
-                [2, 2, 2, 2], 
-                [3, 3, 3, 3], 
-                [4, 4, 4, 4], 
-                [5, 5, 5, 5], 
-                [6, 6, 6, 6]
-            ]
-        )).toBe(2)
-    );
-    it("calculates the size of a 3x3", () => 
-        expect(getCubeSize(
-            [
-                [1, 1, 1, 1, 1, 1, 1, 1, 1], 
-                [2, 2, 2, 2, 2, 2, 2, 2, 2], 
-                [3, 3, 3, 3, 3, 3, 3, 3, 3], 
-                [4, 4, 4, 4, 4, 4, 4, 4, 4], 
-                [5, 5, 5, 5, 5, 5, 5, 5, 5], 
-                [6, 6, 6, 6, 6, 6, 6, 6, 6]
-            ]
-        )).toBe(3)
-    );
-});
 
 describe("at", () => {
     it("gets the value", () => 

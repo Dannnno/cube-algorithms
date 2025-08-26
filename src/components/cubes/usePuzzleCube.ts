@@ -1,5 +1,5 @@
 import React, { useReducer } from "react";
-import { CubeAxis, CubeData, CubeSide } from "@model/cube";
+import { CubeAxis, CubeData, CubeSide, getCubeSize } from "@model/cube";
 import { forceNever } from "@/common";
 import { IReactCubeProps } from "@components/cubes";
 import { 

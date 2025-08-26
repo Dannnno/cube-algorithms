@@ -1,6 +1,6 @@
 import { expect, describe, it, beforeEach } from "vitest";
 
-import { forEach, LoopStatus, swapAt } from "../../src/common/iterables";
+import { forEach, LoopStatus, swapAt, zip } from "../../src/common/iterables";
 
 describe("forEach", () => {
     const array: readonly number[] = [1, 2, 3];
@@ -72,5 +72,54 @@ describe("swapAt", () => {
     it("Fails to compile mis-matched types", () => {
         //@ts-expect-error number and string mismatch
         swapAt([1, 2, 3], 0, ["1", "2", "3"], 1);
+    });
+});
+
+describe("zip", () => {
+
+    it("catches left too long", () => {
+        expect(() => zip([1, 2, 3], [4, 5], _ => {})).toThrowError(
+            'Assertion of "false" failed'
+        );
+    });
+    it("catches right too long", () => {
+        expect(() => zip([1, 2], [3, 4, 5], _ => {})).toThrowError(
+            'Assertion of "false" failed'
+        );
+    });
+    const l = [1, 2, 3];
+    const r = ['a', 'b', 'c'];
+    const visited = [[1, 'a'], [2, 'b'], [3, 'c']];
+    it("doesn't stop early if not requested", () => {
+        let count = 0;
+        zip(l, r, (left, right, ix) => {
+            ++count;
+            const [eLeft, eRight] = visited[ix];
+            expect(left, `Left[${ix}]`).toBe(eLeft);
+            expect(right, `Right[${ix}]`).toBe(eRight);
+        });
+        expect(count).toBe(l.length);
+    });
+    it("stops early if requested", () => {
+        let count = 0;
+        zip(l, r, (left, right, ix) => {
+            ++count;
+            const [eLeft, eRight] = visited[ix];
+            expect(left, `Left[${ix}]`).toBe(eLeft);
+            expect(right, `Right[${ix}]`).toBe(eRight);
+            return LoopStatus.StopLooping;
+        });
+        expect(count).toBe(1);
+    });
+    it("doesn't stop early if returns", () => {
+        let count = 0;
+        zip(l, r, (left, right, ix) => {
+            ++count;
+            const [eLeft, eRight] = visited[ix];
+            expect(left, `Left[${ix}]`).toBe(eLeft);
+            expect(right, `Right[${ix}]`).toBe(eRight);
+            return LoopStatus.KeepLooping;
+        });
+        expect(count).toBe(l.length);
     });
 });

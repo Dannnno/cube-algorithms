@@ -1,3 +1,5 @@
+import { assert } from "./type-guard";
+
 /**
  * Represent whether some type of loop that executes a callback
  * should continue or not
@@ -22,6 +24,28 @@ export function forEach<T>(
 ): LoopStatus {
     for (let ix = 0; ix < arr.length; ++ix) {
         if (callback(arr[ix], ix) == LoopStatus.StopLooping) {
+            return LoopStatus.StopLooping;
+        }
+    }
+    return LoopStatus.KeepLooping;
+}
+
+/**
+ * Iterate over two arrays pairwise. Requires that they have the same length
+ * @param left The left array
+ * @param right The right array
+ * @param callback The action to take on the zipper
+ * @returns Whether we stopped zipping early
+ */
+export function zip<TLeft, TRight>(
+    left: readonly TLeft[],
+    right: readonly TRight[],
+    callback: (left: TLeft, right: TRight, ix: number) => LoopStatus | void
+): LoopStatus {
+    assert(left.length === right.length);
+    
+    for (let ix = 0; ix < left.length; ++ix) {
+        if (callback(left[ix], right[ix], ix) === LoopStatus.StopLooping) {
             return LoopStatus.StopLooping;
         }
     }

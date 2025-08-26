@@ -3,16 +3,15 @@ import styles, {
 	flatCube, cubeSide, cubeValue, actionButton 
 } from './flat-cube.module.scss';
 import { 
-	CubeAxis, CubeCellValue, CubeSide, CubeSideData, forEachCellOnSide, 
-	forEachSide , getCubeSize
+	CubeAxis, CubeCellValue, CubeSide, CubeSideData, FaceRotationDirection, 
+	forEachCellOnSide, forEachSide, getCubeSize, SliceDirection
 } from '@model/cube';
 import { 
 	IPrettyPuzzleCubeProps, PuzzleCubeCellStyleMap 
 } from './generic-cube';
 import { DeepReadonly, forceNever } from '@/common';
 import {
-	SliceDirection, SliceRotationButton, FaceRotationDirection, 
-	FaceRotationButton, FocusFaceButton
+	SliceRotationButton, FaceRotationButton, FocusFaceButton
 } from '../workflow/';
 import { CubeActions } from './usePuzzleCube';
 
@@ -244,6 +243,7 @@ const FlatCubeValue: React.FC<IFlatCubeValueProps> = props => {
 			data-side-id={sideId}
 			data-row-num={rowNum}
 			data-col-num={colNum}
+			data-cur-value={value}
 			className={cubeValue} 
 			style={style}
 		>

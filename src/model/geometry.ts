@@ -1,7 +1,7 @@
-import { DeepReadonly, forceNever } from "@/common";
+import { assert, DeepReadonly, forceNever } from "@/common";
 import { 
     CubeSide, CubeCellValue, CubeSideData, CubeData, getCubeSize,
-    assertIsValidCube, assertIsValidCubeCell, CubeAxis,
+    assertIsValidCube, assertIsValidCubeCell, CubeAxis, SliceDirection 
 } from "./cube";
 
 /**
@@ -274,6 +274,133 @@ function _rotateCubeFace(
         assertIsValidCube(cubeData, cubeSize);
     }
     return cubeData;
+}
+
+export function rotateCubeSliceFromFace(
+    cube: DeepReadonly<CubeData>,
+    faceRef: CubeSide,
+    axis: CubeAxis,
+    offsetStart: number,
+    numSlices: number,
+    direction: SliceDirection,
+    numRotations: number
+): CubeData {
+    const cubeSize = getCubeSize(cube);
+
+    // The underlying rotation API assumes all indices are from a single
+    // "reference" face. For the Y-axis this is the front face, for the Z-axis
+    // this is the left face, and for the X-axis it is treated as though you're 
+    // looking down on the cube from the top.
+    // This means that slicing the Y-axis in index 3 (in a 4x4 or larger cube)
+    // means a different thing depending on which face you're looking at when
+    // you slice it.
+    //
+    // Practically speaking, slices will always be done (from a user-facing
+    // perspective) while looking at a face. We can (and have! See commit
+    // 0ed4b32) do all of this logic to clean things up in the rendering layer
+    // but it is easier and simpler to keep all of the mathy bits in this file.
+    //
+    // It also means it will be easier to add additional rendering modes in the
+    // future that won't need to re-invent those calculations for their own
+    // rendering style (hopefully).
+
+    assert(numRotations >= 0);
+    const { isIndexInverted, sign } = _getDirectionSign(
+        axis, faceRef, direction
+    );
+    const trueOffsetStart = isIndexInverted 
+        ? cubeSize - offsetStart - numSlices : offsetStart;
+    const trueRotCount = sign * numRotations;
+
+    return rotateCubeInternalSlice(
+        cube,
+        axis,
+        trueOffsetStart,
+        numSlices,
+        trueRotCount
+    );
+}
+
+const DIRECTION_SIGN_MAP: DeepReadonly<Record<
+    CubeSide, 
+    Partial<Record<
+        CubeAxis, 
+        Partial<Record<
+            SliceDirection, 
+            { isIndexInverted: boolean; sign: 1 | -1}
+        >>
+    >>
+>> = {
+    [CubeSide.Left]: {
+        X: {
+            [SliceDirection.Left]: { isIndexInverted: false, sign: 1 },
+            [SliceDirection.Right]: { isIndexInverted: false, sign: -1 },
+        },
+        Z: {
+            [SliceDirection.Up]: { isIndexInverted: false, sign: 1 },
+            [SliceDirection.Down]: { isIndexInverted: false, sign: -1 }
+        }
+    },
+    [CubeSide.Right]: {
+        X: {
+            [SliceDirection.Left]: { isIndexInverted: false, sign: 1 },
+            [SliceDirection.Right]: { isIndexInverted: false, sign: -1 },
+        },
+        Z: {
+            [SliceDirection.Up]: { isIndexInverted: true, sign: -1 },
+            [SliceDirection.Down]: { isIndexInverted: true, sign: 1 }
+        }
+    },
+    [CubeSide.Front]: {
+        X: {
+            [SliceDirection.Left]: { isIndexInverted: false, sign: 1 },
+            [SliceDirection.Right]: { isIndexInverted: false, sign: -1 },
+        },
+        Y: {
+            [SliceDirection.Up]: { isIndexInverted: false, sign: 1 },
+            [SliceDirection.Down]: { isIndexInverted: false, sign: -1 }
+        }
+    },
+    [CubeSide.Back]: {
+        X: {
+            [SliceDirection.Left]: { isIndexInverted: false, sign: 1 },
+            [SliceDirection.Right]: { isIndexInverted: false, sign: -1 },
+        },
+        Y: {
+            [SliceDirection.Up]: { isIndexInverted: true, sign: -1 },
+            [SliceDirection.Down]: { isIndexInverted: true, sign: 1 }
+        }
+    },
+    [CubeSide.Top]: {
+        Z: {
+            [SliceDirection.Left]: { isIndexInverted: false, sign: -1 },
+            [SliceDirection.Right]: { isIndexInverted: false, sign: 1 },
+        },
+        Y: {
+            [SliceDirection.Up]: { isIndexInverted: false, sign: 1 },
+            [SliceDirection.Down]: { isIndexInverted: false, sign: -1 }
+        }
+    },
+    [CubeSide.Bottom]: {
+        Z: {
+            [SliceDirection.Left]: { isIndexInverted: true, sign: 1 },
+            [SliceDirection.Right]: { isIndexInverted: true, sign: -1 },
+        },
+        Y: {
+            [SliceDirection.Up]: { isIndexInverted: false, sign: 1 },
+            [SliceDirection.Down]: { isIndexInverted: false, sign: -1 }
+        }
+    },
+};
+
+function _getDirectionSign(
+    axis: CubeAxis, face: CubeSide, direction: SliceDirection
+): Readonly<{ isIndexInverted: boolean; sign: 1 | -1}> {
+    const axisLookup = DIRECTION_SIGN_MAP[face];
+    const directionLookup = axisLookup[axis];
+    const sign = directionLookup?.[direction];
+    assert(sign !== undefined);
+    return sign;
 }
 
 /**

@@ -102,8 +102,8 @@ const App: React.FC<{}> = () => {
           <button 
             id="resize-input-button"  
             name="resize-input-button"
-            role="button"
             title={`Resize the cube to be ${size}x${size}x${size}`}
+            aria-label={`Resize the cube to be ${size}x${size}x${size}`}
             onClick={onClickResizeCube} 
             disabled={!resizeEnabled}
           >
@@ -115,8 +115,8 @@ const App: React.FC<{}> = () => {
           <button 
             id="reset-button"  
             name="reset-button"
-            role="button"
             title={`Reset the cube`}
+            aria-label={`Reset the cube`}
             onClick={onClickResetCube} 
           >
           </button>

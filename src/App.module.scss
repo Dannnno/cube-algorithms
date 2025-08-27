@@ -1,36 +1,67 @@
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.cubePlayground {
+	margin: 0;
+	display: grid;
+	grid-template-columns: repeat(4, auto);
+	grid-template-rows: repeat(7, auto);
+	grid-template-areas:
+		"size rset pick"
+		"cube cube cube"
+		"cube cube cube"
+		"cube cube cube"
+		"cube cube cube"
+		"cube cube cube"
+		"cube cube cube";
+	row-gap: 5px;
+	column-gap: 5px;
+	min-width: 800px;
 
-  &:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
+	.resize, .reset, .styleSelect {
+		border: 1px solid black;
+		padding: 5px;
+		display: flex;
+		flex: row nowrap;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+		max-width: 100%;
 
-  &.react {
-    &:hover {
-     filter: drop-shadow(0 0 2em #61dafbaa);
+		button {
+			padding: 5px;
+			width: 25px;
+			height: 25px;
+			background-color: #FFFFFF;
+			background-size: cover;
+
+			&:disabled {
+				background-color: #808080;
+			}
+		}
+	}
+
+	.resize {
+        grid-area: size;
+
+		button {
+			background-image: url("/src/assets/progression.svg");
+		}
+	}
+
+	.reset {
+        grid-area: rset;
+		button {
+			background-image: url("/src/assets/cycle.svg");
+		}
+	}
+
+	.styleSelect {
+        grid-area: pick;
+		button {
+			background-image: url("/src/assets/cycle.svg");
+		}
+	}
+
+    .cube {
+        grid-area: cube;
+		padding: 10px;
     }
-    @media (prefers-reduced-motion: no-preference) {
-      animation: logo-spin infinite 20s linear;
-    }
-  }
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

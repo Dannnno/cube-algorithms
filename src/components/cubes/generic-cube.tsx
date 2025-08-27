@@ -11,6 +11,18 @@ interface IPuzzleCubeCellStyle {
 }
 
 /**
+ * A rendering style for the puzzle cube
+ */
+export enum CubeRenderStyle {
+  /** No render style */
+  None = "",
+  /** Flattened (i.e. unrolled) */
+  Flat = "Flat",
+  /** Three-dimensional */
+  ThreeD = "3D",
+}
+
+/**
  * Map from a cube side to its rendering style.
  */
 export type PuzzleCubeCellStyleMap = Readonly<
@@ -23,6 +35,14 @@ export type PuzzleCubeCellStyleMap = Readonly<
 export interface IReactCubeProps {
   /** The current state of the cube */
   readonly cubeData: DeepReadonly<CubeData>;
+  /**
+   * How to take actions on a cube
+   */
+  readonly cubeDispatch: React.Dispatch<CubeActions>;
+  /**
+   * How the cube should be rendered
+   */
+  readonly renderStyle: CubeRenderStyle;
 }
 
 /**
@@ -33,8 +53,4 @@ export interface IPrettyPuzzleCubeProps extends IReactCubeProps {
    * A mapping between a given cell value and how it should be styled.
    */
   readonly styleMap?: PuzzleCubeCellStyleMap;
-  /**
-   * How to take actions on a cube
-   */
-  readonly cubeDispatch: React.Dispatch<CubeActions>;
 }

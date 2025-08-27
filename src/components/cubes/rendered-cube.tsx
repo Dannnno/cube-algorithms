@@ -10,29 +10,31 @@ import {
   forEachSide,
   getCubeSize,
 } from "@model/cube";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   FaceRotationButton,
   FocusFaceButton,
   SliceRotationButton,
 } from "../workflow/";
-import {
+import { CubeRenderStyle, IReactCubeProps } from "./generic-cube";
+import styles, {
   actionButton,
-  cubeSide,
-  cubeValue,
-  flatCube,
-} from "./flat-cube.module.scss";
-import { IPrettyPuzzleCubeProps, PuzzleCubeCellStyleMap } from "./generic-cube";
+  back,
+  bottom,
+  cell,
+  cube,
+  cubeContainer,
+  cubePerspective,
+  face,
+  flat,
+  front,
+  left,
+  right,
+  threeD,
+  top,
+  visible,
+} from "./rendered-cube.module.scss";
 import { CubeActions } from "./usePuzzleCube";
-
-const DEFAULT_STYLE_MAP: PuzzleCubeCellStyleMap = {
-  [CubeSide.Left]: { color: "red" },
-  [CubeSide.Front]: { color: "cyan" },
-  [CubeSide.Right]: { color: "orange" },
-  [CubeSide.Back]: { color: "green" },
-  [CubeSide.Top]: { color: "white" },
-  [CubeSide.Bottom]: { color: "yellow" },
-};
 
 function asCssVars(
   ...pairs: readonly (readonly [string, string | number])[]
@@ -40,80 +42,105 @@ function asCssVars(
   return Object.fromEntries(pairs) as React.CSSProperties;
 }
 
-function sideSizeAsCssVars(size: number): React.CSSProperties {
-  return asCssVars(["--side-size", size]);
-}
-
 /**
- * Component that renders a flattened 3-dimensional puzzle cube.
+ * Component that renders a 3-dimensional puzzle cube.
  */
-export const FlatCube: React.FC<IPrettyPuzzleCubeProps> = props => {
-  const { cubeData, styleMap = DEFAULT_STYLE_MAP, cubeDispatch } = props;
+export const RenderedCube: React.FC<IReactCubeProps> = props => {
+  const { cubeData, cubeDispatch, renderStyle } = props;
   const size = getCubeSize(cubeData);
-  const style = sideSizeAsCssVars(size);
+  const cssVars = asCssVars(["--side-size", size]);
+
+  let renderStyleClass: string;
+  switch (renderStyle) {
+    case CubeRenderStyle.None:
+      return <p>Select a rendering style to view the cube</p>;
+    case CubeRenderStyle.Flat:
+      renderStyleClass = flat;
+      break;
+    case CubeRenderStyle.ThreeD:
+      renderStyleClass = threeD;
+      break;
+    default:
+      forceNever(renderStyle);
+  }
 
   const sides: React.ReactElement[] = [];
   forEachSide(cubeData, (sideId, data) =>
     sides.push(
-      <FlatCubeSide
+      <RenderedCubeSide
         key={sideId}
         sideId={sideId}
         size={size}
         side={data}
-        styleMap={styleMap}
         cubeDispatch={cubeDispatch}
       />,
     ),
   );
 
   return (
-    <div className={flatCube} style={style}>
-      {...sides}
+    <div className={`${cubeContainer} ${renderStyleClass}`} style={cssVars}>
+      <div className={cubePerspective}>
+        <div className={cube}>{...sides}</div>
+      </div>
     </div>
   );
 };
 
-interface IFlatCubeSideProps {
+interface ICubeSideProps {
   readonly size: number;
   readonly sideId: CubeSide;
   readonly side: DeepReadonly<CubeSideData>;
-  readonly styleMap: PuzzleCubeCellStyleMap;
   readonly cubeDispatch: React.Dispatch<CubeActions>;
 }
 
-const FlatCubeSide: React.FC<IFlatCubeSideProps> = props => {
-  const { side, styleMap, sideId, size, cubeDispatch } = props;
-  const style = sideSizeAsCssVars(size);
+const RenderedCubeSide: React.FC<ICubeSideProps> = props => {
+  const { side, sideId, size, cubeDispatch } = props;
+
+  const [actionsAreVisible, setActionsAreVisible] = useState(false);
+  const onMouseEnter = useCallback(
+    () => setActionsAreVisible(true),
+    [setActionsAreVisible],
+  );
+  const onMouseLeave = useCallback(
+    () => setActionsAreVisible(false),
+    [setActionsAreVisible],
+  );
 
   const values: React.ReactElement[] = [];
   forEachCellOnSide(side, size, (row, col, value) => {
     values.push(
-      <FlatCubeValue
+      <RenderedCubeCell
         size={size}
         sideId={sideId}
-        styleMap={styleMap}
         value={value}
         rowNum={row}
         colNum={col}
         cubeDispatch={cubeDispatch}
+        actionsAreVisible={actionsAreVisible}
       />,
     );
   });
+  const className = [left, front, right, back, top, bottom][sideId - 1];
 
   return (
-    <p data-side-id={sideId} className={cubeSide} style={style}>
+    <div
+      data-side-id={sideId}
+      className={`${face} ${className}`}
+      onMouseOver={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       {...values}
-    </p>
+    </div>
   );
 };
 
-interface IFlatCubeValueProps {
+interface ICubeValueProps {
   readonly size: number;
   readonly sideId: CubeSide;
   readonly value: CubeCellValue;
   readonly rowNum: number;
   readonly colNum: number;
-  readonly styleMap: PuzzleCubeCellStyleMap;
+  readonly actionsAreVisible: boolean;
   readonly cubeDispatch: React.Dispatch<CubeActions>;
 }
 
@@ -231,24 +258,32 @@ function useSlotButton(
   }, [sideId, size, row, col, dispatch]);
 }
 
-const FlatCubeValue: React.FC<IFlatCubeValueProps> = props => {
-  const { size, sideId, styleMap, value, rowNum, colNum, cubeDispatch } = props;
-  const { color } = styleMap[value] ?? DEFAULT_STYLE_MAP[value];
-  const style = asCssVars(["--block-color", color]);
-
+const RenderedCubeCell: React.FC<ICubeValueProps> = props => {
+  const {
+    actionsAreVisible,
+    size,
+    sideId,
+    value,
+    rowNum,
+    colNum,
+    cubeDispatch,
+  } = props;
   const button = useSlotButton(sideId, size, rowNum, colNum, cubeDispatch);
+  const className = actionsAreVisible
+    ? `${visible} ${actionButton}`
+    : actionButton;
+
   return (
-    <span
+    <div
       data-side-id={sideId}
       data-row-num={rowNum}
       data-col-num={colNum}
       data-cur-value={value}
-      className={cubeValue}
-      style={style}
+      className={`${cell} ${styles[`side-${value}`]}`}
     >
-      <span className={actionButton}>{button}</span>
-    </span>
+      <div className={className}>{button}</div>
+    </div>
   );
 };
 
-export default FlatCube;
+export default RenderedCube;

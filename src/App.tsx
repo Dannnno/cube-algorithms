@@ -1,8 +1,8 @@
-import { forceNever, isBoundedInteger } from "@/common";
+import { isBoundedInteger } from "@/common";
 import {
   CubeActionType,
-  FlatCube,
-  ThreeDimCube,
+  CubeRenderStyle,
+  RenderedCube,
   usePuzzleCube,
 } from "@components/cubes";
 import { Credits } from "@components/workflow";
@@ -18,20 +18,17 @@ import {
 
 const App: React.FC<{}> = () => {
   const [size, setSize] = useState(3);
-  const [cubeStyle, setCubeStyle] = useState(CubeStyle.Flat);
+  const [cubeStyle, setCubeStyle] = useState(CubeRenderStyle.Flat);
   const [resizeEnabled, setResizeEnabled] = useState(false);
 
   const [puzzleCube, cubeDispatch] = usePuzzleCube(size);
-  const calculatedSize = useMemo(
-    () => getCubeSize(puzzleCube.cubeData),
-    [puzzleCube.cubeData],
-  );
+  const calculatedSize = useMemo(() => getCubeSize(puzzleCube), [puzzleCube]);
 
   const cubeStyleOptions = useMemo(
     () =>
-      Object.keys(CubeStyleOptions).map(id => (
-        <option value={id} key={id}>
-          {id}
+      Object.entries(CubeRenderStyle).map(([key, value]) => (
+        <option value={value} key={key}>
+          {key}
         </option>
       )),
     [cubeStyle],
@@ -39,7 +36,7 @@ const App: React.FC<{}> = () => {
 
   const onCubeStyleOptionChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) =>
-      setCubeStyle(event.target.value as CubeStyle),
+      setCubeStyle(event.target.value as CubeRenderStyle),
     [cubeStyle],
   );
 
@@ -74,26 +71,6 @@ const App: React.FC<{}> = () => {
       setResizeEnabled(newSize !== calculatedSize);
     }
   }, [setSize, calculatedSize]);
-
-  const cubeProps = {
-    cubeDispatch,
-    ...puzzleCube,
-  };
-
-  let renderedCube: React.ReactElement;
-  switch (cubeStyle) {
-    case CubeStyle.Flat:
-      renderedCube = <FlatCube {...cubeProps} />;
-      break;
-    case CubeStyle.ThreeD:
-      renderedCube = <ThreeDimCube {...cubeProps} />;
-      break;
-    case CubeStyle.None:
-      renderedCube = <p>Select a rendering style above.</p>;
-      break;
-    default:
-      forceNever(cubeStyle);
-  }
 
   return (
     <>
@@ -148,24 +125,18 @@ const App: React.FC<{}> = () => {
           </select>
         </div>
 
-        <div className={cube}>{renderedCube}</div>
+        <div className={cube}>
+          <RenderedCube
+            cubeData={puzzleCube}
+            cubeDispatch={cubeDispatch}
+            renderStyle={cubeStyle}
+          />
+        </div>
       </div>
 
       <Credits />
     </>
   );
 };
-
-enum CubeStyle {
-  None = "",
-  Flat = "Flat",
-  ThreeD = "3D",
-}
-
-const CubeStyleOptions = {
-  [CubeStyle.None]: CubeStyle.None,
-  [CubeStyle.Flat]: CubeStyle.Flat,
-  [CubeStyle.ThreeD]: CubeStyle.ThreeD,
-} as const;
 
 export default App;

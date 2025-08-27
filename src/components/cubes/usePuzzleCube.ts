@@ -1,11 +1,10 @@
-import { forceNever } from "@/common";
-import { IReactCubeProps } from "@components/cubes";
+import { DeepReadonly, forceNever } from "@/common";
 import {
   CubeAxis,
   CubeData,
   CubeSide,
-  getCubeSize,
   SliceDirection,
+  getCubeSize,
 } from "@model/cube";
 import {
   refocusCube,
@@ -97,14 +96,8 @@ export type CubeActions =
  */
 export function usePuzzleCube(
   initialSize: number = 3,
-): [IReactCubeProps, React.Dispatch<CubeActions>] {
-  return useReducer(puzzleReducer, initialSize, makeDefaultCube);
-}
-
-function makeDefaultCube(size: number): IReactCubeProps {
-  return {
-    cubeData: buildCubeOfSize(size),
-  };
+): [DeepReadonly<CubeData>, React.Dispatch<CubeActions>] {
+  return useReducer(puzzleReducer, initialSize, buildCubeOfSize);
 }
 
 function buildCubeOfSize(size: number): CubeData {
@@ -118,22 +111,18 @@ function buildCubeOfSize(size: number): CubeData {
   ];
 }
 
-const puzzleReducer: React.Reducer<IReactCubeProps, CubeActions> = (
-  state: IReactCubeProps,
+const puzzleReducer: React.Reducer<DeepReadonly<CubeData>, CubeActions> = (
+  state: DeepReadonly<CubeData>,
   action: CubeActions,
 ) => {
   let cubeData: CubeData;
   switch (action.type) {
     case CubeActionType.RotateFace:
-      cubeData = rotateCubeFace(
-        state.cubeData,
-        action.sideId,
-        action.rotationCount,
-      );
+      cubeData = rotateCubeFace(state, action.sideId, action.rotationCount);
       break;
     case CubeActionType.RotateSlice:
       cubeData = rotateCubeSliceFromFace(
-        state.cubeData,
+        state,
         action.refSide,
         action.axis,
         action.offsetIndex,
@@ -146,13 +135,13 @@ const puzzleReducer: React.Reducer<IReactCubeProps, CubeActions> = (
       cubeData = buildCubeOfSize(action.newSize);
       break;
     case CubeActionType.ResetCube:
-      cubeData = buildCubeOfSize(getCubeSize(state.cubeData));
+      cubeData = buildCubeOfSize(getCubeSize(state));
       break;
     case CubeActionType.RotateCube:
-      cubeData = refocusCube(state.cubeData, action.focusFace);
+      cubeData = refocusCube(state, action.focusFace);
       break;
     default:
       forceNever(action);
   }
-  return { cubeData };
+  return cubeData;
 };

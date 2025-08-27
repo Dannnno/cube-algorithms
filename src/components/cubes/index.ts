@@ -1,4 +1,3 @@
-export * from "./3d-cube";
-export * from "./flat-cube";
 export * from "./generic-cube";
+export * from "./rendered-cube";
 export * from "./usePuzzleCube";

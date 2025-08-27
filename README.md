@@ -7,7 +7,7 @@ Algorithms and visualizations of how to solve 3D Puzzle Cubes
 ### Cube Rendering
 
 - [x] Flattened cube
-- [ ] 3D cube
+- [x] 3D cube
 - [ ] Circular "chords"
 - [x] Multiple cube sizes (2x2 through 9x9)
 - [ ] Picture/pattern cubes

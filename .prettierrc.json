@@ -1,0 +1,6 @@
+{
+  "arrowParens": "avoid",
+  "experimentalTernaries": false,
+  "experimentalOperatorPosition": "start",
+  "plugins": ["prettier-plugin-organize-imports"]
+}

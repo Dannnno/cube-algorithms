@@ -7,7 +7,10 @@ module.exports = {
     'plugin:react-hooks/recommended',
     'plugin:@typescript-eslint/stylistic-type-checked',
     'plugin:react/recommended',
-    'plugin:react/jsx-runtime'
+    'plugin:react/jsx-runtime',
+    'plugin:import/errors',
+    'plugin:import/warnings',
+    'prettier',
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
@@ -16,12 +19,27 @@ module.exports = {
     sourceType: 'module',
     project: ['./tsconfig.json', './tsconfig.node.json'],
     tsconfigRootDir: __dirname,
+    ecmaFeatures: {
+      jsx: true,
+    },
   },
-  plugins: ['react-refresh', ],
+  plugins: [
+    'react',
+    'react-hooks',
+    'import',
+    'react-refresh',
+  ],
   rules: {
     'react-refresh/only-export-components': [
       'warn',
       { allowConstantExport: true },
     ],
+    'react/react-in-jsx-scpe': 'off',
+    'react/prop-types': 'off',
+  },
+  settings: {
+    react: {
+      version: 'detect',
+    },
   },
 };

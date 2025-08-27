@@ -1,96 +1,94 @@
-import React, { useReducer } from "react";
-import { 
-    CubeAxis, CubeData, CubeSide, getCubeSize, SliceDirection 
-} from "@model/cube";
 import { forceNever } from "@/common";
 import { IReactCubeProps } from "@components/cubes";
-import { 
-    rotateCubeFace, rotateCubeInternalSlice, refocusCube,
-    rotateCubeSliceFromFace,
+import {
+  CubeAxis,
+  CubeData,
+  CubeSide,
+  getCubeSize,
+  SliceDirection,
+} from "@model/cube";
+import {
+  refocusCube,
+  rotateCubeFace,
+  rotateCubeSliceFromFace,
 } from "@model/geometry";
+import React, { useReducer } from "react";
 
 /**
  * Actions that can be taken on a cube
  */
 export const enum CubeActionType {
-    /**
-     * Rotate a face
-     */
-    RotateFace,
-    /**
-     * Rotate an internal slice
-     */
-    RotateSlice,
-    /**
-     * Reset the cube to it's default shape and layout
-     */
-    ResetCube,
-    /**
-     * Rotate the cube so a new face is the "front" face (i.e. face #2)
-     */
-    RotateCube,
-    /**
-     * Resize the cube. Also resets shape and layout
-     */
-    ResizeCube,
+  /**
+   * Rotate a face
+   */
+  RotateFace,
+  /**
+   * Rotate an internal slice
+   */
+  RotateSlice,
+  /**
+   * Reset the cube to it's default shape and layout
+   */
+  ResetCube,
+  /**
+   * Rotate the cube so a new face is the "front" face (i.e. face #2)
+   */
+  RotateCube,
+  /**
+   * Resize the cube. Also resets shape and layout
+   */
+  ResizeCube,
 }
 
 interface IActionBase<T extends CubeActionType = CubeActionType> {
-    /** The type of action to be taken on the cube */
-    readonly type: T;
+  /** The type of action to be taken on the cube */
+  readonly type: T;
 }
 
-interface ICubeRotateFaceAction 
-    extends IActionBase<CubeActionType.RotateFace> 
-{
-    /** The face that will be rotated */
-    readonly sideId: CubeSide;
-    /** How many times to rotate that face clockwise */
-    readonly rotationCount: number;
+interface ICubeRotateFaceAction extends IActionBase<CubeActionType.RotateFace> {
+  /** The face that will be rotated */
+  readonly sideId: CubeSide;
+  /** How many times to rotate that face clockwise */
+  readonly rotationCount: number;
 }
 
-interface ICubeRotateSliceAction 
-    extends IActionBase<CubeActionType.RotateSlice> 
-{
-    /** Which axis to rotate the internal slices on */
-    readonly axis: CubeAxis;
-    /** How far into the cube to slice it */
-    readonly offsetIndex: number;
-    /** How many rows to slice at a time */
-    readonly offsetSize: number;
-    /** How many clockwise rotations to do */
-    readonly rotationCount: number;
-    /** The direction to rotate in */
-    readonly direction: SliceDirection;
-    /** The side we're looking at while slicing */
-    readonly refSide: CubeSide;
+interface ICubeRotateSliceAction
+  extends IActionBase<CubeActionType.RotateSlice> {
+  /** Which axis to rotate the internal slices on */
+  readonly axis: CubeAxis;
+  /** How far into the cube to slice it */
+  readonly offsetIndex: number;
+  /** How many rows to slice at a time */
+  readonly offsetSize: number;
+  /** How many clockwise rotations to do */
+  readonly rotationCount: number;
+  /** The direction to rotate in */
+  readonly direction: SliceDirection;
+  /** The side we're looking at while slicing */
+  readonly refSide: CubeSide;
 }
 
 type CubeResetCubeAction = IActionBase<CubeActionType.ResetCube>;
 
-interface ICubeResizeAction 
-    extends IActionBase<CubeActionType.ResizeCube>
-{
-    /** How large to make the new cube */
-    readonly newSize: number;
+interface ICubeResizeAction extends IActionBase<CubeActionType.ResizeCube> {
+  /** How large to make the new cube */
+  readonly newSize: number;
 }
 
-interface ICubeRotateCubeAction 
-    extends IActionBase<CubeActionType.RotateCube> 
-{
-    /** The face to re-focus on */
-    readonly focusFace: CubeSide;
+interface ICubeRotateCubeAction extends IActionBase<CubeActionType.RotateCube> {
+  /** The face to re-focus on */
+  readonly focusFace: CubeSide;
 }
 
 /**
  * The types of actions that can be dispatched to modify a puzzle cube
  */
-export type CubeActions = 
-    ICubeRotateFaceAction 
-    | ICubeRotateSliceAction
-    | CubeResetCubeAction 
-    | ICubeRotateCubeAction
-    | ICubeResizeAction;
+export type CubeActions =
+  | ICubeRotateFaceAction
+  | ICubeRotateSliceAction
+  | CubeResetCubeAction
+  | ICubeRotateCubeAction
+  | ICubeResizeAction;
 
 /**
  * Custom hook to use a custom puzzle cube
@@ -98,61 +96,63 @@ export type CubeActions =
  * @returns React reducer to manage the cube
  */
 export function usePuzzleCube(
-    initialSize: number = 3
+  initialSize: number = 3,
 ): [IReactCubeProps, React.Dispatch<CubeActions>] {
-    return useReducer(puzzleReducer, initialSize, makeDefaultCube);
+  return useReducer(puzzleReducer, initialSize, makeDefaultCube);
 }
 
 function makeDefaultCube(size: number): IReactCubeProps {
-    return {
-        cubeData: buildCubeOfSize(size),
-    }
+  return {
+    cubeData: buildCubeOfSize(size),
+  };
 }
 
 function buildCubeOfSize(size: number): CubeData {
-    return [
-        Array.from({length: size*size}, _ => 1),
-        Array.from({length: size*size}, _ => 2),
-        Array.from({length: size*size}, _ => 3),
-        Array.from({length: size*size}, _ => 4),
-        Array.from({length: size*size}, _ => 5),
-        Array.from({length: size*size}, _ => 6)
-    ];
+  return [
+    Array.from({ length: size * size }, _ => 1),
+    Array.from({ length: size * size }, _ => 2),
+    Array.from({ length: size * size }, _ => 3),
+    Array.from({ length: size * size }, _ => 4),
+    Array.from({ length: size * size }, _ => 5),
+    Array.from({ length: size * size }, _ => 6),
+  ];
 }
 
-const puzzleReducer: React.Reducer<IReactCubeProps, CubeActions> = 
-    (state: IReactCubeProps, action: CubeActions) => {
-        let cubeData: CubeData;
-        switch (action.type) {
-            case CubeActionType.RotateFace:
-                cubeData = rotateCubeFace(
-                    state.cubeData,
-                    action.sideId,
-                    action.rotationCount
-                );
-                break;
-            case CubeActionType.RotateSlice:
-                cubeData = rotateCubeSliceFromFace(
-                    state.cubeData,
-                    action.refSide,
-                    action.axis,
-                    action.offsetIndex,
-                    action.offsetSize,
-                    action.direction,
-                    action.rotationCount,
-                );
-                break;
-            case CubeActionType.ResizeCube:
-                cubeData = buildCubeOfSize(action.newSize);
-                break;
-            case CubeActionType.ResetCube:
-                cubeData = buildCubeOfSize(getCubeSize(state.cubeData));
-                break;
-            case CubeActionType.RotateCube:
-                cubeData = refocusCube(state.cubeData, action.focusFace);
-                break;
-            default:
-                forceNever(action);
-        }
-        return { cubeData };
+const puzzleReducer: React.Reducer<IReactCubeProps, CubeActions> = (
+  state: IReactCubeProps,
+  action: CubeActions,
+) => {
+  let cubeData: CubeData;
+  switch (action.type) {
+    case CubeActionType.RotateFace:
+      cubeData = rotateCubeFace(
+        state.cubeData,
+        action.sideId,
+        action.rotationCount,
+      );
+      break;
+    case CubeActionType.RotateSlice:
+      cubeData = rotateCubeSliceFromFace(
+        state.cubeData,
+        action.refSide,
+        action.axis,
+        action.offsetIndex,
+        action.offsetSize,
+        action.direction,
+        action.rotationCount,
+      );
+      break;
+    case CubeActionType.ResizeCube:
+      cubeData = buildCubeOfSize(action.newSize);
+      break;
+    case CubeActionType.ResetCube:
+      cubeData = buildCubeOfSize(getCubeSize(state.cubeData));
+      break;
+    case CubeActionType.RotateCube:
+      cubeData = refocusCube(state.cubeData, action.focusFace);
+      break;
+    default:
+      forceNever(action);
+  }
+  return { cubeData };
 };

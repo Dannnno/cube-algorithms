@@ -1,42 +1,42 @@
 .actionButton {
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  background-size: cover;
+
+  &:disabled {
+    background-color: rgba(80, 80, 80, 0.4);
+  }
+
+  img {
     width: 100%;
     height: 100%;
-    background-color: transparent;
+  }
+
+  &.focusFace {
+    background-image: url("/src/assets/eye-target.svg");
+  }
+
+  &.clockwise {
+    background-image: url("/src/assets/clockwise-rotation.svg");
+  }
+
+  &.antiClockwise {
+    background-image: url("/src/assets/anticlockwise-rotation.svg");
     background-size: cover;
+  }
 
-    &:disabled {
-        background-color: rgba(80, 80, 80, 0.4);
-    }
-
-    img {
-        width: 100%;
-        height: 100%;
-    }
-
-    &.focusFace {        
-        background-image: url("/src/assets/eye-target.svg");
-    }
-
-    &.clockwise {
-        background-image: url("/src/assets/clockwise-rotation.svg");
-    }
-
-    &.antiClockwise {
-        background-image: url("/src/assets/anticlockwise-rotation.svg");
-        background-size: cover;
-    }
-
-    &.sliceLeft {
-        background-image: url("/src/assets/sideswipe.svg");
-    }
-    &.sliceRight {
-        background-image: url("/src/assets/sideswipe.svg");
-        transform: scaleX(-1);
-    }
-    &.sliceUp {
-        background-image: url("/src/assets/overhead.svg");
-    }
-    &.sliceDown {
-        background-image: url("/src/assets/underhand.svg");
-    }
+  &.sliceLeft {
+    background-image: url("/src/assets/sideswipe.svg");
+  }
+  &.sliceRight {
+    background-image: url("/src/assets/sideswipe.svg");
+    transform: scaleX(-1);
+  }
+  &.sliceUp {
+    background-image: url("/src/assets/overhead.svg");
+  }
+  &.sliceDown {
+    background-image: url("/src/assets/underhand.svg");
+  }
 }

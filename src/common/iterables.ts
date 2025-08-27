@@ -5,10 +5,10 @@ import { assert } from "./type-guard";
  * should continue or not
  */
 export const enum LoopStatus {
-    /** The loop should stop */
-    StopLooping,
-    /** The loop should continue */
-    KeepLooping
+  /** The loop should stop */
+  StopLooping,
+  /** The loop should continue */
+  KeepLooping,
 }
 
 /**
@@ -19,15 +19,15 @@ export const enum LoopStatus {
  * @returns Whether the loop broke early
  */
 export function forEach<T>(
-    arr: readonly T[], 
-    callback: (value: T, ix: number) => LoopStatus | void
+  arr: readonly T[],
+  callback: (value: T, ix: number) => LoopStatus | void,
 ): LoopStatus {
-    for (let ix = 0; ix < arr.length; ++ix) {
-        if (callback(arr[ix], ix) == LoopStatus.StopLooping) {
-            return LoopStatus.StopLooping;
-        }
+  for (let ix = 0; ix < arr.length; ++ix) {
+    if (callback(arr[ix], ix) == LoopStatus.StopLooping) {
+      return LoopStatus.StopLooping;
     }
-    return LoopStatus.KeepLooping;
+  }
+  return LoopStatus.KeepLooping;
 }
 
 /**
@@ -38,18 +38,18 @@ export function forEach<T>(
  * @returns Whether we stopped zipping early
  */
 export function zip<TLeft, TRight>(
-    left: readonly TLeft[],
-    right: readonly TRight[],
-    callback: (left: TLeft, right: TRight, ix: number) => LoopStatus | void
+  left: readonly TLeft[],
+  right: readonly TRight[],
+  callback: (left: TLeft, right: TRight, ix: number) => LoopStatus | void,
 ): LoopStatus {
-    assert(left.length === right.length);
-    
-    for (let ix = 0; ix < left.length; ++ix) {
-        if (callback(left[ix], right[ix], ix) === LoopStatus.StopLooping) {
-            return LoopStatus.StopLooping;
-        }
+  assert(left.length === right.length);
+
+  for (let ix = 0; ix < left.length; ++ix) {
+    if (callback(left[ix], right[ix], ix) === LoopStatus.StopLooping) {
+      return LoopStatus.StopLooping;
     }
-    return LoopStatus.KeepLooping;
+  }
+  return LoopStatus.KeepLooping;
 }
 
 /**
@@ -60,12 +60,12 @@ export function zip<TLeft, TRight>(
  * @param rightIx The location in the right array to be swapped
  */
 export function swapAt<T>(
-    left: T[],
-    leftIx: number,
-    right: T[],
-    rightIx: number
+  left: T[],
+  leftIx: number,
+  right: T[],
+  rightIx: number,
 ): void {
-    const tmp = left[leftIx];
-    left[leftIx] = right[rightIx];
-    right[rightIx] = tmp;
+  const tmp = left[leftIx];
+  left[leftIx] = right[rightIx];
+  right[rightIx] = tmp;
 }

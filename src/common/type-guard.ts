@@ -3,10 +3,10 @@
  * @param toAssert Value to be checked
  */
 export function assert(toAssert: unknown): asserts toAssert {
-    if (toAssert) {
-        return;
-    }
-    throw new Error(`Assertion of "${toAssert}" failed`);
+  if (toAssert) {
+    return;
+  }
+  throw new Error(`Assertion of "${toAssert}" failed`);
 }
 
 /**
@@ -15,7 +15,7 @@ export function assert(toAssert: unknown): asserts toAssert {
  * @returns Whether it is an integer
  */
 export function isInteger(val: unknown): val is number {
-    return Number.isInteger(val);
+  return Number.isInteger(val);
 }
 
 /**
@@ -24,7 +24,7 @@ export function isInteger(val: unknown): val is number {
  * @returns Whether it is a positive integer
  */
 export function isPositiveInteger(val: unknown): val is number {
-    return isInteger(val) && val >= 1;
+  return isInteger(val) && val >= 1;
 }
 
 /**
@@ -33,9 +33,11 @@ export function isPositiveInteger(val: unknown): val is number {
  * @returns Whether it is an integer in-bounds
  */
 export function isBoundedInteger(
-    val: unknown, min: number, max: number
+  val: unknown,
+  min: number,
+  max: number,
 ): val is number {
-    return isInteger(val) && val >= min && val <= max;
+  return isInteger(val) && val >= min && val <= max;
 }
 
 /**
@@ -44,5 +46,5 @@ export function isBoundedInteger(
  * @param value A value that should never be valued
  */
 export function forceNever(value: never): never {
-    throw Error(`Reached impossible code with value "${value}"`);
+  throw Error(`Reached impossible code with value "${value}"`);
 }

@@ -1,16 +1,16 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite'
+import react from "@vitejs/plugin-react";
 import path from "path";
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  test: { 
+  test: {
     browser: {
-      name: 'chromium',
-      enabled: true
-    }
+      name: "chromium",
+      enabled: true,
+    },
     // coverage: {
     //   provider: "v8",
     //   reporter: ["default", "text", "json", "html"],
@@ -27,6 +27,6 @@ export default defineConfig({
       "@model": path.resolve(__dirname, "./src/model"),
       "@common": path.resolve(__dirname, "./src/common"),
       "@test": path.resolve(__dirname, "./test"),
-    }
-  }
-})
+    },
+  },
+});

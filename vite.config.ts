@@ -2,10 +2,18 @@
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
+import sassDts from "vite-plugin-sass-dts";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    sassDts({
+      enabledMode: ["development", "production"],
+      sourceDir: path.resolve(__dirname, "./src"),
+      outputDir: path.resolve(__dirname, "./dist"),
+    }),
+  ],
   test: {
     browser: {
       name: "chromium",

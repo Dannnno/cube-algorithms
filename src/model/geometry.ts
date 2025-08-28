@@ -289,6 +289,17 @@ function _rotateCubeFace(
   return cubeData;
 }
 
+/**
+ * Rotate a slice of a cube, referentially from a particular face
+ * @param cube The cube to be sliced
+ * @param faceRef The face that is being viewed during the slice
+ * @param axis The axis being sliced on
+ * @param offsetStart How far into the cube to start slicing
+ * @param numSlices How many layers to include in the slice
+ * @param direction The direction being sliced (relative to `faceRef`)
+ * @param numRotations How many times to rotate the slice in that direction
+ * @returns A modified cube
+ */
 export function rotateCubeSliceFromFace(
   cube: DeepReadonly<CubeData>,
   faceRef: CubeSide,

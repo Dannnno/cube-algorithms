@@ -10,7 +10,7 @@ import {
   forEachSide,
   getCubeSize,
 } from "@model/cube";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   FaceRotationButton,
   FocusFaceButton,
@@ -18,7 +18,7 @@ import {
 } from "../workflow/";
 import { CubeRenderStyle, IReactCubeProps } from "./generic-cube";
 import styles, {
-  actionButton,
+  actionButtonWrapper,
   back,
   bottom,
   cell,
@@ -32,7 +32,6 @@ import styles, {
   right,
   threeD,
   top,
-  visible,
 } from "./rendered-cube.module.scss";
 import { CubeActions } from "./usePuzzleCube";
 
@@ -52,8 +51,6 @@ export const RenderedCube: React.FC<IReactCubeProps> = props => {
 
   let renderStyleClass: string;
   switch (renderStyle) {
-    case CubeRenderStyle.None:
-      return <p>Select a rendering style to view the cube</p>;
     case CubeRenderStyle.Flat:
       renderStyleClass = flat;
       break;
@@ -96,16 +93,6 @@ interface ICubeSideProps {
 const RenderedCubeSide: React.FC<ICubeSideProps> = props => {
   const { side, sideId, size, cubeDispatch } = props;
 
-  const [actionsAreVisible, setActionsAreVisible] = useState(false);
-  const onMouseEnter = useCallback(
-    () => setActionsAreVisible(true),
-    [setActionsAreVisible],
-  );
-  const onMouseLeave = useCallback(
-    () => setActionsAreVisible(false),
-    [setActionsAreVisible],
-  );
-
   const values: React.ReactElement[] = [];
   forEachCellOnSide(side, size, (row, col, value) => {
     values.push(
@@ -116,19 +103,13 @@ const RenderedCubeSide: React.FC<ICubeSideProps> = props => {
         rowNum={row}
         colNum={col}
         cubeDispatch={cubeDispatch}
-        actionsAreVisible={actionsAreVisible}
       />,
     );
   });
   const className = [left, front, right, back, top, bottom][sideId - 1];
 
   return (
-    <div
-      data-side-id={sideId}
-      className={`${face} ${className}`}
-      onMouseOver={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
+    <div data-side-id={sideId} className={`${face} ${className}`}>
       {...values}
     </div>
   );
@@ -140,7 +121,6 @@ interface ICubeValueProps {
   readonly value: CubeCellValue;
   readonly rowNum: number;
   readonly colNum: number;
-  readonly actionsAreVisible: boolean;
   readonly cubeDispatch: React.Dispatch<CubeActions>;
 }
 
@@ -259,19 +239,8 @@ function useSlotButton(
 }
 
 const RenderedCubeCell: React.FC<ICubeValueProps> = props => {
-  const {
-    actionsAreVisible,
-    size,
-    sideId,
-    value,
-    rowNum,
-    colNum,
-    cubeDispatch,
-  } = props;
+  const { size, sideId, value, rowNum, colNum, cubeDispatch } = props;
   const button = useSlotButton(sideId, size, rowNum, colNum, cubeDispatch);
-  const className = actionsAreVisible
-    ? `${visible} ${actionButton}`
-    : actionButton;
 
   return (
     <div
@@ -281,7 +250,7 @@ const RenderedCubeCell: React.FC<ICubeValueProps> = props => {
       data-cur-value={value}
       className={`${cell} ${styles[`side-${value}`]}`}
     >
-      <div className={className}>{button}</div>
+      <div className={actionButtonWrapper}>{button}</div>
     </div>
   );
 };

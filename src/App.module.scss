@@ -33,6 +33,10 @@
       height: 25px;
       background-color: #ffffff;
       background-size: cover;
+      border-radius: 15%;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.25s;
 
       &:disabled {
         background-color: #808080;
@@ -57,9 +61,6 @@
 
   .styleSelect {
     grid-area: pick;
-    button {
-      background-image: url("/src/assets/cycle.svg");
-    }
   }
 
   .cube {

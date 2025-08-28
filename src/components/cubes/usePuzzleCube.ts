@@ -11,7 +11,7 @@ import {
   rotateCubeFace,
   rotateCubeSliceFromFace,
 } from "@model/geometry";
-import React, { useReducer } from "react";
+import React, { useMemo, useReducer } from "react";
 
 /**
  * Actions that can be taken on a cube
@@ -145,3 +145,12 @@ const puzzleReducer: React.Reducer<DeepReadonly<CubeData>, CubeActions> = (
   }
   return cubeData;
 };
+
+/**
+ * Can be used to get a deep dependency on object changes
+ * @param cube The cube to hash
+ * @returns A 'hash' of the cube
+ */
+export function usePuzzleCubeHash(cube: DeepReadonly<CubeData>): string {
+  return useMemo(() => cube.map(side => side.join(",")).join("|"), [cube]);
+}

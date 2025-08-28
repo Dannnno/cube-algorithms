@@ -21,13 +21,15 @@
     width: var(--face-size);
     height: var(--face-size);
 
-    .actionButton {
+    &:not(:hover) .actionButtonWrapper {
+      display: none;
+    }
+    .actionButtonWrapper {
       width: 100%;
       height: 100%;
-
-      &:not(.visible) {
-        display: none;
-      }
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .cell {
@@ -113,10 +115,6 @@
         position: relative;
         transform-style: preserve-3d;
 
-        // transform-origin: calc(0.5 * var(--face-size)) bottom
-        //   calc(-0.5 * var(--face-size));
-        // animation: rotate 20s linear infinite;
-
         .face {
           position: absolute;
           aspect-ratio: 1;
@@ -150,15 +148,6 @@
             top: 69%;
             transform-origin: top;
             transform: rotateX(-90deg);
-          }
-        }
-
-        @keyframes rotate {
-          from {
-            transform: rotate(0);
-          }
-          to {
-            transform: rotateY(360deg);
           }
         }
       }

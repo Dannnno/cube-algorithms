@@ -4,10 +4,11 @@ import {
   CubeRenderStyle,
   RenderedCube,
   usePuzzleCube,
+  usePuzzleCubeHash,
 } from "@components/cubes";
 import { Credits } from "@components/workflow";
 import { getCubeSize } from "@model/cube";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   cube,
   cubePlayground,
@@ -20,9 +21,19 @@ const App: React.FC<{}> = () => {
   const [size, setSize] = useState(3);
   const [cubeStyle, setCubeStyle] = useState(CubeRenderStyle.Flat);
   const [resizeEnabled, setResizeEnabled] = useState(false);
+  const [resetEnabled, setResetEnabled] = useState(false);
 
+  const [defaultCubeOfSize, resizeDispatch] = usePuzzleCube(size);
   const [puzzleCube, cubeDispatch] = usePuzzleCube(size);
+  const cubeHash = usePuzzleCubeHash(puzzleCube);
+  const defaultCubeHash = usePuzzleCubeHash(defaultCubeOfSize);
+  const cubeHasChanged = useMemo(
+    () => cubeHash !== defaultCubeHash,
+    [cubeHash, defaultCubeHash],
+  );
   const calculatedSize = useMemo(() => getCubeSize(puzzleCube), [puzzleCube]);
+
+  useEffect(() => setResetEnabled(cubeHasChanged), [cubeHasChanged]);
 
   const cubeStyleOptions = useMemo(
     () =>
@@ -40,17 +51,21 @@ const App: React.FC<{}> = () => {
     [cubeStyle],
   );
 
-  const onClickResetCube = useCallback(
-    () =>
+  const onClickResetCube = useCallback(() => {
+    if (resetEnabled && cubeHasChanged) {
       cubeDispatch({
         type: CubeActionType.ResetCube,
-      }),
-    [cubeDispatch],
-  );
+      });
+    }
+  }, [cubeDispatch, resetEnabled, cubeHasChanged]);
 
   const onClickResizeCube = useCallback(() => {
     if (resizeEnabled && size !== calculatedSize) {
       cubeDispatch({
+        type: CubeActionType.ResizeCube,
+        newSize: size,
+      });
+      resizeDispatch({
         type: CubeActionType.ResizeCube,
         newSize: size,
       });
@@ -109,6 +124,7 @@ const App: React.FC<{}> = () => {
             title={`Reset the cube`}
             aria-label={`Reset the cube`}
             onClick={onClickResetCube}
+            disabled={!resetEnabled}
           ></button>
         </div>
 

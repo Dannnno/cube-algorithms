@@ -105,15 +105,18 @@
       position: relative;
       top: 15%;
       bottom: -15%;
-      perspective: calc(8 * var(--face-size));
+      perspective: calc(10 * var(--face-size));
       perspective-origin: calc(5 * var(--face-size)) calc(-5 * var(--face-size));
 
       .cube {
         pointer-events: none;
-        width: calc(1.5 * var(--face-size));
+        width: var(--face-size);
+        height: var(--face-size);
         aspect-ratio: 1;
         position: relative;
         transform-style: preserve-3d;
+        transform-origin: calc(0.5 * var(--face-size)) bottom
+          calc(-0.5 * var(--face-size));
 
         .face {
           position: absolute;
@@ -129,12 +132,12 @@
             top: 0;
           }
           &.right {
-            left: 67.45%;
+            left: 101.6%;
             transform-origin: left;
             transform: rotateY(90deg);
           }
           &.back {
-            bottom: 164%;
+            bottom: 195%;
             transform-origin: center calc(1.5 * var(--face-size))
               calc(-0.5 * var(--face-size));
             transform: rotateX(180deg);
@@ -145,7 +148,7 @@
             transform: rotateX(90deg);
           }
           &.bottom {
-            top: 69%;
+            top: 103%;
             transform-origin: top;
             transform: rotateX(-90deg);
           }

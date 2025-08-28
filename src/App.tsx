@@ -37,9 +37,9 @@ const App: React.FC<{}> = () => {
 
   const cubeStyleOptions = useMemo(
     () =>
-      Object.entries(CubeRenderStyle).map(([key, value]) => (
-        <option value={value} key={key}>
-          {key}
+      Object.values(CubeRenderStyle).map(value => (
+        <option value={value} key={value}>
+          {value}
         </option>
       )),
     [cubeStyle],

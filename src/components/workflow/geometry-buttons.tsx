@@ -11,12 +11,21 @@ import React, { useCallback, useMemo } from "react";
 import {
   actionButton,
   antiClockwise,
+  center,
   clockwise,
+  down,
   focusFace,
+  left,
+  right,
+  rotateCubeButton,
+  rotateWholeCubeButton,
   sliceDown,
   sliceLeft,
   sliceRight,
   sliceUp,
+  up,
+  zDown,
+  zUp,
 } from "./geometry-buttons.module.scss";
 
 interface IFaceRotationButtonProps {
@@ -165,7 +174,7 @@ export const FocusFaceButton: React.FC<IFocusButtonProps> = props => {
   const { cubeDispatch, sideId } = props;
   const callback = useCallback(() => {
     cubeDispatch({
-      type: CubeActionType.RotateCube,
+      type: CubeActionType.FocusCube,
       focusFace: sideId,
     });
   }, [cubeDispatch, sideId]);
@@ -179,4 +188,125 @@ export const FocusFaceButton: React.FC<IFocusButtonProps> = props => {
       disabled={sideId === CubeSide.Front}
     ></button>
   );
+};
+
+interface IRotateWholeCubeButtonProps {
+  readonly dispatch: React.Dispatch<CubeActions>;
+  readonly direction: SliceDirection;
+  readonly axis: CubeAxis;
+}
+
+interface IRotateCubeButtonContainerProps {
+  readonly dispatch: React.Dispatch<CubeActions>;
+}
+
+export const RotateCubeButtonContainer: React.FC<
+  IRotateCubeButtonContainerProps
+> = props => {
+  const { dispatch } = props;
+  return (
+    <div className={rotateWholeCubeButton}>
+      <div className={`${rotateCubeButton} ${zUp}`}>
+        <RotateWholeCubeButton
+          dispatch={dispatch}
+          axis="Z"
+          direction={SliceDirection.Up}
+        />
+      </div>
+      <div className={`${rotateCubeButton} ${zDown}`}>
+        <RotateWholeCubeButton
+          dispatch={dispatch}
+          axis="Z"
+          direction={SliceDirection.Down}
+        />
+      </div>
+      <div className={`${rotateCubeButton} ${left}`}>
+        <RotateWholeCubeButton
+          dispatch={dispatch}
+          axis="X"
+          direction={SliceDirection.Left}
+        />
+      </div>
+      <div className={`${rotateCubeButton} ${right}`}>
+        <RotateWholeCubeButton
+          dispatch={dispatch}
+          axis="X"
+          direction={SliceDirection.Right}
+        />
+      </div>
+      <div className={`${rotateCubeButton} ${up}`}>
+        <RotateWholeCubeButton
+          dispatch={dispatch}
+          axis="Y"
+          direction={SliceDirection.Up}
+        />
+      </div>
+      <div className={`${rotateCubeButton} ${down}`}>
+        <RotateWholeCubeButton
+          dispatch={dispatch}
+          axis="Y"
+          direction={SliceDirection.Down}
+        />
+      </div>
+      <div className={`${rotateCubeButton} ${center}`}>
+        <img src="/puzzle_cube.png"></img>
+      </div>
+    </div>
+  );
+};
+
+const RotateWholeCubeButton: React.FC<IRotateWholeCubeButtonProps> = props => {
+  const { dispatch, direction, axis } = props;
+  const [className, sign, title] = useMemo(
+    () => ROTATE_CUBE_CLASSNAME_MAPPING[axis][direction]!,
+    [axis, direction],
+  );
+  const callback = useCallback(
+    () =>
+      dispatch({
+        type: CubeActionType.RotateCube,
+        axis,
+        rotationCount: 1 * sign,
+      }),
+    [axis, sign],
+  );
+
+  return (
+    <button
+      onClick={callback}
+      className={`${actionButton} ${className}`}
+      title={title}
+      aria-label={title}
+    ></button>
+  );
+};
+
+const ROTATE_CUBE_CLASSNAME_MAPPING: Record<
+  CubeAxis,
+  Partial<Record<SliceDirection, readonly [string, number, string]>>
+> = {
+  X: {
+    [SliceDirection.Left]: [sliceLeft, 1, "Rotate the cube left on the X-axis"],
+    [SliceDirection.Right]: [
+      sliceRight,
+      -1,
+      "Rotate the cube right on the X-axis",
+    ],
+  },
+  Y: {
+    [SliceDirection.Up]: [sliceUp, 1, "Rotate the cube up on the Y-axis"],
+    [SliceDirection.Down]: [
+      sliceDown,
+      -1,
+      "Rotate the cube down on the Y-axis",
+    ],
+  },
+  Z: {
+    [SliceDirection.Up]: [clockwise, 1, "Rotate the cube up on the Z-axis"],
+    [SliceDirection.Down]: [
+      antiClockwise,
+      -1,
+      "Rotate the cube down on the Z-axis",
+    ],
+  },
 };

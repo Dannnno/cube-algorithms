@@ -1,13 +1,14 @@
-import { forceNever, isBoundedInteger } from "@/common";
+import { isBoundedInteger } from "@/common";
 import {
   CubeActionType,
-  FlatCube,
-  ThreeDimCube,
+  CubeRenderStyle,
+  RenderedCube,
   usePuzzleCube,
+  usePuzzleCubeHash,
 } from "@components/cubes";
 import { Credits } from "@components/workflow";
 import { getCubeSize } from "@model/cube";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   cube,
   cubePlayground,
@@ -18,20 +19,27 @@ import {
 
 const App: React.FC<{}> = () => {
   const [size, setSize] = useState(3);
-  const [cubeStyle, setCubeStyle] = useState(CubeStyle.Flat);
+  const [cubeStyle, setCubeStyle] = useState(CubeRenderStyle.Flat);
   const [resizeEnabled, setResizeEnabled] = useState(false);
+  const [resetEnabled, setResetEnabled] = useState(false);
 
+  const [defaultCubeOfSize, resizeDispatch] = usePuzzleCube(size);
   const [puzzleCube, cubeDispatch] = usePuzzleCube(size);
-  const calculatedSize = useMemo(
-    () => getCubeSize(puzzleCube.cubeData),
-    [puzzleCube.cubeData],
+  const cubeHash = usePuzzleCubeHash(puzzleCube);
+  const defaultCubeHash = usePuzzleCubeHash(defaultCubeOfSize);
+  const cubeHasChanged = useMemo(
+    () => cubeHash !== defaultCubeHash,
+    [cubeHash, defaultCubeHash],
   );
+  const calculatedSize = useMemo(() => getCubeSize(puzzleCube), [puzzleCube]);
+
+  useEffect(() => setResetEnabled(cubeHasChanged), [cubeHasChanged]);
 
   const cubeStyleOptions = useMemo(
     () =>
-      Object.keys(CubeStyleOptions).map(id => (
-        <option value={id} key={id}>
-          {id}
+      Object.values(CubeRenderStyle).map(value => (
+        <option value={value} key={value}>
+          {value}
         </option>
       )),
     [cubeStyle],
@@ -39,21 +47,25 @@ const App: React.FC<{}> = () => {
 
   const onCubeStyleOptionChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) =>
-      setCubeStyle(event.target.value as CubeStyle),
+      setCubeStyle(event.target.value as CubeRenderStyle),
     [cubeStyle],
   );
 
-  const onClickResetCube = useCallback(
-    () =>
+  const onClickResetCube = useCallback(() => {
+    if (resetEnabled && cubeHasChanged) {
       cubeDispatch({
         type: CubeActionType.ResetCube,
-      }),
-    [cubeDispatch],
-  );
+      });
+    }
+  }, [cubeDispatch, resetEnabled, cubeHasChanged]);
 
   const onClickResizeCube = useCallback(() => {
     if (resizeEnabled && size !== calculatedSize) {
       cubeDispatch({
+        type: CubeActionType.ResizeCube,
+        newSize: size,
+      });
+      resizeDispatch({
         type: CubeActionType.ResizeCube,
         newSize: size,
       });
@@ -74,26 +86,6 @@ const App: React.FC<{}> = () => {
       setResizeEnabled(newSize !== calculatedSize);
     }
   }, [setSize, calculatedSize]);
-
-  const cubeProps = {
-    cubeDispatch,
-    ...puzzleCube,
-  };
-
-  let renderedCube: React.ReactElement;
-  switch (cubeStyle) {
-    case CubeStyle.Flat:
-      renderedCube = <FlatCube {...cubeProps} />;
-      break;
-    case CubeStyle.ThreeD:
-      renderedCube = <ThreeDimCube {...cubeProps} />;
-      break;
-    case CubeStyle.None:
-      renderedCube = <p>Select a rendering style above.</p>;
-      break;
-    default:
-      forceNever(cubeStyle);
-  }
 
   return (
     <>
@@ -132,6 +124,7 @@ const App: React.FC<{}> = () => {
             title={`Reset the cube`}
             aria-label={`Reset the cube`}
             onClick={onClickResetCube}
+            disabled={!resetEnabled}
           ></button>
         </div>
 
@@ -148,24 +141,18 @@ const App: React.FC<{}> = () => {
           </select>
         </div>
 
-        <div className={cube}>{renderedCube}</div>
+        <div className={cube}>
+          <RenderedCube
+            cubeData={puzzleCube}
+            cubeDispatch={cubeDispatch}
+            renderStyle={cubeStyle}
+          />
+        </div>
       </div>
 
       <Credits />
     </>
   );
 };
-
-enum CubeStyle {
-  None = "",
-  Flat = "Flat",
-  ThreeD = "3D",
-}
-
-const CubeStyleOptions = {
-  [CubeStyle.None]: CubeStyle.None,
-  [CubeStyle.Flat]: CubeStyle.Flat,
-  [CubeStyle.ThreeD]: CubeStyle.ThreeD,
-} as const;
 
 export default App;

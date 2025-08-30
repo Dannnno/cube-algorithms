@@ -1,5 +1,5 @@
 import { DeepReadonly } from "@common/generics";
-import { CubeData, CubeSide } from "@model/cube";
+import { CubeData } from "@model/cube";
 import { CubeActions } from "./usePuzzleCube";
 
 /**
@@ -11,11 +11,14 @@ interface IPuzzleCubeCellStyle {
 }
 
 /**
- * Map from a cube side to its rendering style.
+ * A rendering style for the puzzle cube
  */
-export type PuzzleCubeCellStyleMap = Readonly<
-  Record<CubeSide, IPuzzleCubeCellStyle>
->;
+export enum CubeRenderStyle {
+  /** Flattened (i.e. unrolled) */
+  Flat = "Flat",
+  /** Three-dimensional */
+  ThreeD = "3D",
+}
 
 /**
  * Data model for a React FC on a puzzle cube
@@ -23,18 +26,12 @@ export type PuzzleCubeCellStyleMap = Readonly<
 export interface IReactCubeProps {
   /** The current state of the cube */
   readonly cubeData: DeepReadonly<CubeData>;
-}
-
-/**
- * Properties for aesthetic puzzle cubes
- */
-export interface IPrettyPuzzleCubeProps extends IReactCubeProps {
-  /**
-   * A mapping between a given cell value and how it should be styled.
-   */
-  readonly styleMap?: PuzzleCubeCellStyleMap;
   /**
    * How to take actions on a cube
    */
   readonly cubeDispatch: React.Dispatch<CubeActions>;
+  /**
+   * How the cube should be rendered
+   */
+  readonly renderStyle: CubeRenderStyle;
 }

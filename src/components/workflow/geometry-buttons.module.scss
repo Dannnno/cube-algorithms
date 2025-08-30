@@ -1,16 +1,29 @@
-.actionButton {
-  width: 100%;
-  height: 100%;
+button.actionButton {
+  width: 90%;
+  height: 90%;
   background-color: transparent;
   background-size: cover;
+  border-radius: 15%;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+
+  &:not(:disabled) {
+    &:hover {
+      border-color: #646cff;
+    }
+    &:focus,
+    &:focus-visible {
+      outline: 4px auto -webkit-focus-ring-color;
+    }
+  }
 
   &:disabled {
     background-color: rgba(80, 80, 80, 0.4);
-  }
-
-  img {
-    width: 100%;
-    height: 100%;
   }
 
   &.focusFace {

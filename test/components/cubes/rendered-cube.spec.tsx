@@ -6,7 +6,8 @@ import { DeepReadonly } from "../../../src/common/generics";
 import {
   CubeActionType,
   CubeActions,
-  FlatCube,
+  CubeRenderStyle,
+  RenderedCube,
 } from "../../../src/components/cubes";
 import { CubeData, CubeSide } from "../../../src/model/cube";
 
@@ -24,7 +25,8 @@ function expectDispatchedAction(
   };
 }
 
-interface IFlatCubeCellTestCase {
+interface IRenderedCubeCellTestCase {
+  readonly renderStyle: CubeRenderStyle;
   readonly size: string;
   readonly cube: DeepReadonly<CubeData>;
   readonly locatorName: string;
@@ -60,60 +62,69 @@ describe.skip("FlatCube", async () => {
     Array.from({ length: 16 }, _ => 6),
   ];
 
-  const tests: IFlatCubeCellTestCase[] = [];
-  for (const sideId of [1 /*, 2, 3, 4, 5, 6*/] as const) {
-    tests.push(
-      // 2x2 layout:
-      //
-      //  +---+---+
-      //  |CC | CW|
-      //  +---+---+
-      //  |   | F |
-      //  +---+---+
-      {
-        size: "2x2",
-        cube: base2x2Cube,
-        locatorName: `Rotate Face ${sideId} counter-clockwise`,
-        expectedSide: sideId,
-        expectedRow: 0,
-        expectedCol: 0,
-        expectedAction: {
-          type: CubeActionType.RotateFace,
-          sideId,
-          rotationCount: 3,
+  const tests: IRenderedCubeCellTestCase[] = [];
+  for (const renderStyle of Object.values(CubeRenderStyle)) {
+    for (const sideId of [1 /*, 2, 3, 4, 5, 6*/] as const) {
+      tests.push(
+        // 2x2 layout:
+        //
+        //  +---+---+
+        //  |CC | CW|
+        //  +---+---+
+        //  |   | F |
+        //  +---+---+
+        {
+          renderStyle,
+          size: "2x2",
+          cube: base2x2Cube,
+          locatorName: `Rotate Face ${sideId} counter-clockwise`,
+          expectedSide: sideId,
+          expectedRow: 0,
+          expectedCol: 0,
+          expectedAction: {
+            type: CubeActionType.RotateFace,
+            sideId,
+            rotationCount: 3,
+          },
         },
-      },
-      {
-        size: "2x2",
-        cube: base2x2Cube,
-        locatorName: `Rotate Face ${sideId} clockwise`,
-        expectedSide: sideId,
-        expectedRow: 0,
-        expectedCol: 1,
-        expectedAction: {
-          type: CubeActionType.RotateFace,
-          sideId,
-          rotationCount: 1,
+        {
+          renderStyle,
+          size: "2x2",
+          cube: base2x2Cube,
+          locatorName: `Rotate Face ${sideId} clockwise`,
+          expectedSide: sideId,
+          expectedRow: 0,
+          expectedCol: 1,
+          expectedAction: {
+            type: CubeActionType.RotateFace,
+            sideId,
+            rotationCount: 1,
+          },
         },
-      },
-      {
-        size: "2x2",
-        cube: base2x2Cube,
-        locatorName: "",
-        expectedSide: sideId,
-        expectedRow: 1,
-        expectedCol: 0,
-      },
-      {
-        size: "2x2",
-        cube: base2x2Cube,
-        locatorName: `Focus Face ${sideId}`,
-        expectedSide: sideId,
-        expectedRow: 1,
-        expectedCol: 1,
-        expectedAction: { type: CubeActionType.RotateCube, focusFace: sideId },
-      },
-    );
+        {
+          renderStyle,
+          size: "2x2",
+          cube: base2x2Cube,
+          locatorName: "",
+          expectedSide: sideId,
+          expectedRow: 1,
+          expectedCol: 0,
+        },
+        {
+          renderStyle,
+          size: "2x2",
+          cube: base2x2Cube,
+          locatorName: `Focus Face ${sideId}`,
+          expectedSide: sideId,
+          expectedRow: 1,
+          expectedCol: 1,
+          expectedAction: {
+            type: CubeActionType.RotateCube,
+            focusFace: sideId,
+          },
+        },
+      );
+    }
   }
 
   it.each(tests)("$size [$locatorName]", async testCase => {
@@ -124,11 +135,16 @@ describe.skip("FlatCube", async () => {
       expectedCol,
       expectedRow,
       expectedSide,
+      renderStyle,
     } = testCase;
     const counter = { count: 0 };
     const hook = expectDispatchedAction(expectedAction, counter);
     const screen = await page.render(
-      <FlatCube cubeData={cube} cubeDispatch={hook} />,
+      <RenderedCube
+        cubeData={cube}
+        cubeDispatch={hook}
+        renderStyle={renderStyle}
+      />,
     );
 
     const buttonLocator = await screen.getByRole("button", {

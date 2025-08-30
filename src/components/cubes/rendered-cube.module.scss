@@ -1,0 +1,159 @@
+.cubeContainer {
+  padding: 5px;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black;
+  width: 100%;
+  $cell-size-basis: 12ch;
+  --size-ratio: calc(3 / var(--side-size));
+  --face-size: calc(var(--size-ratio) * var(--side-size) * #{$cell-size-basis});
+  --value-size: calc(var(--size-ratio) * #{$cell-size-basis});
+
+  .face {
+    pointer-events: all;
+    display: grid;
+    grid-template-columns: repeat(var(--side-size), var(--value-size));
+    grid-template-rows: repeate(var(--side-size), var(--value-size));
+    margin: 0;
+    border: 3px solid black;
+    width: var(--face-size);
+    height: var(--face-size);
+
+    &:not(:hover) .actionButtonWrapper {
+      display: none;
+    }
+    .actionButtonWrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .cell {
+      width: var(--value-size);
+      height: var(--value-size);
+      margin: 0;
+      border: 1px solid black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      &.side-1 {
+        background-color: red;
+      }
+      &.side-2 {
+        background-color: cyan;
+      }
+      &.side-3 {
+        background-color: orange;
+      }
+      &.side-4 {
+        background-color: green;
+      }
+      &.side-5 {
+        background-color: white;
+      }
+      &.side-6 {
+        background-color: yellow;
+      }
+    }
+  }
+
+  &.flat {
+    .cubePerspective .cube {
+      display: grid;
+      grid-template-columns: repeat(4, var(--face-size));
+      grid-template-rows: repeat(3, var(--face-size));
+      grid-template-areas:
+        ".	s5	.	."
+        "s1	s2	s3	s4"
+        ".	s6	.	.";
+      row-gap: 5px;
+      column-gap: 5px;
+
+      .face {
+        &.front {
+          grid-area: s2;
+        }
+        &.bottom {
+          grid-area: s6;
+        }
+        &.top {
+          grid-area: s5;
+        }
+        &.back {
+          grid-area: s4;
+        }
+        &.right {
+          grid-area: s3;
+        }
+        &.left {
+          grid-area: s1;
+        }
+      }
+    }
+  }
+
+  &.threeD {
+    height: calc(3 * var(--face-size));
+    min-width: calc(3 * var(--face-size));
+
+    .cubePerspective {
+      position: relative;
+      top: 15%;
+      bottom: -15%;
+      perspective: calc(10 * var(--face-size));
+      perspective-origin: calc(5 * var(--face-size)) calc(-5 * var(--face-size));
+
+      .cube {
+        pointer-events: none;
+        width: var(--face-size);
+        height: var(--face-size);
+        aspect-ratio: 1;
+        position: relative;
+        transform-style: preserve-3d;
+        transform-origin: calc(0.5 * var(--face-size)) bottom
+          calc(-0.5 * var(--face-size));
+
+        .face {
+          position: absolute;
+          aspect-ratio: 1;
+          transform-style: preserve-3d;
+
+          &.left {
+            right: 100%;
+            transform-origin: right;
+            transform: rotateY(-90deg);
+          }
+          &.front {
+            top: 0;
+          }
+          &.right {
+            left: 101.6%;
+            transform-origin: left;
+            transform: rotateY(90deg);
+          }
+          &.back {
+            bottom: 195%;
+            transform-origin: center calc(1.5 * var(--face-size))
+              calc(-0.5 * var(--face-size));
+            transform: rotateX(180deg);
+          }
+          &.top {
+            bottom: 100%;
+            transform-origin: bottom;
+            transform: rotateX(90deg);
+          }
+          &.bottom {
+            top: 103%;
+            transform-origin: top;
+            transform: rotateX(-90deg);
+          }
+        }
+      }
+    }
+  }
+}

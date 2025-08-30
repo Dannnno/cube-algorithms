@@ -35,6 +35,7 @@ export default defineConfig({
       "@model": path.resolve(__dirname, "./src/model"),
       "@common": path.resolve(__dirname, "./src/common"),
       "@test": path.resolve(__dirname, "./test"),
+      "@hooks": path.resolve(__dirname, "./src/hooks"),
     },
   },
 });

@@ -38,6 +38,7 @@ import styles, {
   top,
 } from "./rendered-cube.module.scss";
 import { CubeActions } from "./usePuzzleCube";
+import { WebGlCube } from "./webgl-cube";
 
 function asCssVars(
   ...pairs: readonly (readonly [string, string | number])[]
@@ -61,6 +62,8 @@ export const RenderedCube: React.FC<IReactCubeProps> = props => {
     case CubeRenderStyle.ThreeD:
       renderStyleClass = threeD;
       break;
+    case CubeRenderStyle.ThreeDWebGl:
+      return <WebGlCube {...props} />;
     default:
       forceNever(renderStyle);
   }

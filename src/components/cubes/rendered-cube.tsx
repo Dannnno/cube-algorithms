@@ -14,6 +14,7 @@ import React, { useMemo } from "react";
 import {
   FaceRotationButton,
   FocusFaceButton,
+  RotateCubeButtonContainer,
   SliceRotationButton,
 } from "../workflow/";
 import { CubeRenderStyle, IReactCubeProps } from "./generic-cube";
@@ -22,6 +23,8 @@ import styles, {
   back,
   bottom,
   cell,
+  control,
+  controlButton,
   cube,
   cubeContainer,
   cubePerspective,
@@ -29,6 +32,7 @@ import styles, {
   flat,
   front,
   left,
+  perspectiveWrapper,
   right,
   threeD,
   top,
@@ -75,11 +79,20 @@ export const RenderedCube: React.FC<IReactCubeProps> = props => {
   );
 
   return (
-    <div className={`${cubeContainer} ${renderStyleClass}`} style={cssVars}>
-      <div className={cubePerspective}>
-        <div className={cube}>{...sides}</div>
+    <>
+      <div className={`${cubeContainer} ${renderStyleClass}`} style={cssVars}>
+        <div className={control}>
+          <div className={controlButton}>
+            <RotateCubeButtonContainer dispatch={cubeDispatch} />
+          </div>
+        </div>
+        <div className={perspectiveWrapper}>
+          <div className={cubePerspective}>
+            <div className={cube}>{...sides}</div>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

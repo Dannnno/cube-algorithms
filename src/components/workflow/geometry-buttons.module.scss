@@ -11,6 +11,7 @@ button.actionButton {
   font-family: inherit;
   cursor: pointer;
   transition: border-color 0.25s;
+  background-size: cover;
 
   &:not(:disabled) {
     &:hover {
@@ -36,7 +37,6 @@ button.actionButton {
 
   &.antiClockwise {
     background-image: url("/src/assets/anticlockwise-rotation.svg");
-    background-size: cover;
   }
 
   &.sliceLeft {
@@ -51,5 +51,51 @@ button.actionButton {
   }
   &.sliceDown {
     background-image: url("/src/assets/underhand.svg");
+  }
+}
+
+.rotateWholeCubeButton {
+  width: 100%;
+  height: 100%;
+  background-color: #e0e0e0;
+  display: grid;
+  grid-template-columns: repeat(3, 33.3%);
+  grid-template-rows: repeat(3, 33.3%);
+  grid-template-areas:
+    "zUp    up   ."
+    "left center right"
+    ".    down   zDown";
+
+  .rotateCubeButton {
+    border: 1px dashed black;
+    grid-area: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &.center {
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    &.up {
+      grid-area: up;
+    }
+    &.left {
+      grid-area: left;
+    }
+    &.right {
+      grid-area: right;
+    }
+    &.down {
+      grid-area: down;
+    }
+    &.zUp {
+      grid-area: zUp;
+    }
+    &.zDown {
+      grid-area: zDown;
+    }
   }
 }

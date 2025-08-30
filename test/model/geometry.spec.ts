@@ -11,11 +11,13 @@ import {
   RotationAmount,
   at,
   refocusCube,
+  rotateCube,
   rotateCubeFace,
+  rotateCubeFromFace,
   rotateCubeInternalSlice,
   rotateCubeSliceFromFace,
 } from "../../src/model/geometry";
-import { checkCube } from "./utility";
+import { checkCube, getTestCube } from "./utility";
 
 describe("at", () => {
   it("gets the value", () =>
@@ -96,14 +98,7 @@ function getRotateCubeFaceTestCaseName(
 }
 
 describe("rotateCubeFace", () => {
-  const baseCube = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4, 4, 4, 4, 4],
-    [5, 5, 5, 5, 5, 5, 5, 5, 5],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6],
-  ];
+  const baseCube = getTestCube(3);
   const baseSide1Rotated = rotateCubeFace(
     baseCube,
     CubeSide.Left,
@@ -357,14 +352,7 @@ function getRotateCubeSliceTestCaseName(
 }
 
 describe("rotateCubeInternalSlice", () => {
-  const baseCube = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4, 4, 4, 4, 4],
-    [5, 5, 5, 5, 5, 5, 5, 5, 5],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6],
-  ];
+  const baseCube = getTestCube(3);
   const baseSide1Rotated = rotateCubeFace(baseCube, CubeSide.Left, 1);
   const baseSide2Rotated = rotateCubeFace(baseCube, CubeSide.Front, 1);
   const baseSide5Rotated = rotateCubeFace(baseCube, CubeSide.Top, 1);
@@ -658,27 +646,7 @@ function getRefocusCubeTestCaseName(
 }
 
 describe("refocusCube", () => {
-  const baseCube = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4, 4, 4, 4, 4],
-    [5, 5, 5, 5, 5, 5, 5, 5, 5],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6],
-  ];
-
-  const rcf = (cubeData: DeepReadonly<CubeData>, sideId: CubeSide) =>
-    rotateCubeFace(cubeData, sideId, 1);
-  const rcs = (cube: DeepReadonly<CubeData>, axis: CubeAxis) =>
-    rotateCubeInternalSlice(cube, axis, 1, 1, 1);
-
-  const testCube = rcf(
-    rcf(
-      rcf(rcf(rcf(rcf(rcs(rcs(rcs(baseCube, "X"), "Y"), "Z"), 1), 2), 3), 4),
-      5,
-    ),
-    6,
-  );
+  const testCube = getTestCube(3, true);
 
   // Just make sure that our test cube is set up the way we expect it to be
   beforeAll(() =>
@@ -899,22 +867,8 @@ function _makeRotateCubeSliceFromFaceTestCase(
 }
 
 describe("rotateCubeSliceFromFace", () => {
-  const base3x3Cube: CubeData = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [2, 2, 2, 2, 2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 3, 3, 3, 3, 3],
-    [4, 4, 4, 4, 4, 4, 4, 4, 4],
-    [5, 5, 5, 5, 5, 5, 5, 5, 5],
-    [6, 6, 6, 6, 6, 6, 6, 6, 6],
-  ];
-  const base5x5Cube: CubeData = [
-    Array.from({ length: 25 }, _ => 1),
-    Array.from({ length: 25 }, _ => 2),
-    Array.from({ length: 25 }, _ => 3),
-    Array.from({ length: 25 }, _ => 4),
-    Array.from({ length: 25 }, _ => 5),
-    Array.from({ length: 25 }, _ => 6),
-  ];
+  const base3x3Cube = getTestCube(3);
+  const base5x5Cube = getTestCube(5);
 
   const rot3x3XAxisLeft = rotateCubeInternalSlice(base3x3Cube, "X", 1, 1, 1);
   const rot3x3XAxisRight = rotateCubeInternalSlice(base3x3Cube, "X", 1, 1, -1);
@@ -1156,6 +1110,397 @@ describe("rotateCubeSliceFromFace", () => {
       direction,
       rotation,
     );
+    checkCube(result, expectedCube);
+  });
+});
+
+interface IRotateCubeTestCase {
+  readonly name: string;
+  readonly axis: CubeAxis;
+  readonly numRotations: RotationAmount;
+  readonly expectedCube: DeepReadonly<CubeData>;
+}
+
+function getRotateCubeTestCaseName(
+  testCase: Omit<IRotateCubeTestCase, "name">,
+): string {
+  const { axis, numRotations } = testCase;
+  let rotName: string;
+  switch (numRotations) {
+    case RotationAmount.None:
+      rotName = "0° ↻";
+      break;
+    case RotationAmount.Clockwise:
+      rotName = "90° ↻";
+      break;
+    case RotationAmount.CounterClockwise:
+      rotName = "270° ↻";
+      break;
+    case RotationAmount.Halfway:
+      rotName = "180° ↻";
+      break;
+    default:
+      rotName = `${90 * numRotations}° ↻ (${(90 * numRotations) % 360}° ↻)`;
+      break;
+  }
+  return `${axis} ${rotName}`;
+}
+
+describe("rotateCube", () => {
+  const baseCube = getTestCube(3);
+  const testCases: Omit<IRotateCubeTestCase, "name">[] = [
+    {
+      axis: "X",
+      numRotations: RotationAmount.None,
+      expectedCube: baseCube,
+    },
+    {
+      axis: "X",
+      numRotations: RotationAmount.Clockwise,
+      expectedCube: [
+        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+        [6, 6, 6, 6, 6, 6, 6, 6, 6],
+      ],
+    },
+    {
+      axis: "X",
+      numRotations: RotationAmount.Halfway,
+      expectedCube: [
+        [3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+        [6, 6, 6, 6, 6, 6, 6, 6, 6],
+      ],
+    },
+    {
+      axis: "X",
+      numRotations: RotationAmount.CounterClockwise,
+      expectedCube: [
+        [4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+        [6, 6, 6, 6, 6, 6, 6, 6, 6],
+      ],
+    },
+    {
+      axis: "Y",
+      numRotations: RotationAmount.None,
+      expectedCube: baseCube,
+    },
+    {
+      axis: "Y",
+      numRotations: RotationAmount.Clockwise,
+      expectedCube: [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [6, 6, 6, 6, 6, 6, 6, 6, 6],
+        [3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [4, 4, 4, 4, 4, 4, 4, 4, 4],
+      ],
+    },
+    {
+      axis: "Y",
+      numRotations: RotationAmount.Halfway,
+      expectedCube: [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [6, 6, 6, 6, 6, 6, 6, 6, 6],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+      ],
+    },
+    {
+      axis: "Y",
+      numRotations: RotationAmount.CounterClockwise,
+      expectedCube: [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+        [3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [6, 6, 6, 6, 6, 6, 6, 6, 6],
+        [4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+      ],
+    },
+    {
+      axis: "Z",
+      numRotations: RotationAmount.None,
+      expectedCube: baseCube,
+    },
+    {
+      axis: "Z",
+      numRotations: RotationAmount.Clockwise,
+      expectedCube: [
+        [6, 6, 6, 6, 6, 6, 6, 6, 6],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+        [4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [3, 3, 3, 3, 3, 3, 3, 3, 3],
+      ],
+    },
+    {
+      axis: "Z",
+      numRotations: RotationAmount.Halfway,
+      expectedCube: [
+        [3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [6, 6, 6, 6, 6, 6, 6, 6, 6],
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+      ],
+    },
+    {
+      axis: "Z",
+      numRotations: RotationAmount.CounterClockwise,
+      expectedCube: [
+        [5, 5, 5, 5, 5, 5, 5, 5, 5],
+        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+        [6, 6, 6, 6, 6, 6, 6, 6, 6],
+        [4, 4, 4, 4, 4, 4, 4, 4, 4],
+        [3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+      ],
+    },
+  ];
+  it.each(
+    testCases.map(testCase => ({
+      ...testCase,
+      name: getRotateCubeTestCaseName(testCase),
+    })),
+  )("$name", testCase => {
+    const { axis, numRotations, expectedCube } = testCase;
+    const result = rotateCube(baseCube, axis, numRotations);
+    checkCube(result, expectedCube);
+  });
+});
+
+interface IRotateCubeFromFaceTestCase {
+  readonly name: string;
+  readonly direction: SliceDirection;
+  readonly rotation: RotationAmount;
+  readonly faceRef: CubeSide;
+  readonly expectedCube: DeepReadonly<CubeData>;
+}
+
+function getRotateCubeFromFaceTestCaseName(
+  testCase: Omit<IRotateCubeFromFaceTestCase, "name">,
+): string {
+  const { faceRef, rotation, direction } = testCase;
+  let sideName: string;
+  switch (faceRef) {
+    case CubeSide.Front:
+      sideName = "front";
+      break;
+    case CubeSide.Back:
+      sideName = "back";
+      break;
+    case CubeSide.Left:
+      sideName = "left";
+      break;
+    case CubeSide.Right:
+      sideName = "right";
+      break;
+    case CubeSide.Top:
+      sideName = "top";
+      break;
+    case CubeSide.Bottom:
+      sideName = "bottom";
+      break;
+    default:
+      forceNever(faceRef);
+  }
+  const rotName: string = `${90 * rotation}° ↻`;
+  let dirName: string;
+  switch (direction) {
+    case SliceDirection.Up:
+      dirName = "↑";
+      break;
+    case SliceDirection.Down:
+      dirName = "↓";
+      break;
+    case SliceDirection.Left:
+      dirName = "←";
+      break;
+    case SliceDirection.Right:
+      dirName = "→";
+      break;
+  }
+  return `${sideName} ${dirName} ${rotName}`;
+}
+
+describe("rotateCubeFromFace", () => {
+  const cube = getTestCube(3);
+  const tests: Omit<IRotateCubeFromFaceTestCase, "name">[] = [
+    {
+      faceRef: CubeSide.Left,
+      direction: SliceDirection.Left,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "X", 1),
+    },
+    {
+      faceRef: CubeSide.Left,
+      direction: SliceDirection.Right,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "X", -1),
+    },
+    {
+      faceRef: CubeSide.Left,
+      direction: SliceDirection.Up,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Z", 1),
+    },
+    {
+      faceRef: CubeSide.Left,
+      direction: SliceDirection.Down,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Z", -1),
+    },
+
+    {
+      faceRef: CubeSide.Front,
+      direction: SliceDirection.Left,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "X", 1),
+    },
+    {
+      faceRef: CubeSide.Front,
+      direction: SliceDirection.Right,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "X", -1),
+    },
+    {
+      faceRef: CubeSide.Front,
+      direction: SliceDirection.Up,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Y", 1),
+    },
+    {
+      faceRef: CubeSide.Front,
+      direction: SliceDirection.Down,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Y", -1),
+    },
+
+    {
+      faceRef: CubeSide.Right,
+      direction: SliceDirection.Left,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "X", 1),
+    },
+    {
+      faceRef: CubeSide.Right,
+      direction: SliceDirection.Right,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "X", -1),
+    },
+    {
+      faceRef: CubeSide.Right,
+      direction: SliceDirection.Up,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Z", -1),
+    },
+    {
+      faceRef: CubeSide.Right,
+      direction: SliceDirection.Down,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Z", 1),
+    },
+
+    {
+      faceRef: CubeSide.Back,
+      direction: SliceDirection.Left,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "X", 1),
+    },
+    {
+      faceRef: CubeSide.Back,
+      direction: SliceDirection.Right,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "X", -1),
+    },
+    {
+      faceRef: CubeSide.Back,
+      direction: SliceDirection.Up,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Y", -1),
+    },
+    {
+      faceRef: CubeSide.Back,
+      direction: SliceDirection.Down,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Y", 1),
+    },
+
+    {
+      faceRef: CubeSide.Top,
+      direction: SliceDirection.Left,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Z", -1),
+    },
+    {
+      faceRef: CubeSide.Top,
+      direction: SliceDirection.Right,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Z", 1),
+    },
+    {
+      faceRef: CubeSide.Top,
+      direction: SliceDirection.Up,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Y", 1),
+    },
+    {
+      faceRef: CubeSide.Top,
+      direction: SliceDirection.Down,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Y", -1),
+    },
+
+    {
+      faceRef: CubeSide.Bottom,
+      direction: SliceDirection.Left,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Z", 1),
+    },
+    {
+      faceRef: CubeSide.Bottom,
+      direction: SliceDirection.Right,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Z", -1),
+    },
+    {
+      faceRef: CubeSide.Bottom,
+      direction: SliceDirection.Up,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Y", 1),
+    },
+    {
+      faceRef: CubeSide.Bottom,
+      direction: SliceDirection.Down,
+      rotation: 1,
+      expectedCube: rotateCube(cube, "Y", -1),
+    },
+  ];
+
+  it.each(
+    tests.map(testCase => ({
+      ...testCase,
+      name: getRotateCubeFromFaceTestCaseName(testCase),
+    })),
+  )("$name", testCase => {
+    const { direction, rotation, faceRef, expectedCube } = testCase;
+    const result = rotateCubeFromFace(cube, faceRef, direction, rotation);
     checkCube(result, expectedCube);
   });
 });

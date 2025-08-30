@@ -8,7 +8,9 @@ import {
 } from "@model/cube";
 import {
   refocusCube,
+  rotateCube,
   rotateCubeFace,
+  rotateCubeFromFace,
   rotateCubeSliceFromFace,
 } from "@model/geometry";
 import React, { useMemo, useReducer } from "react";
@@ -32,11 +34,19 @@ export const enum CubeActionType {
   /**
    * Rotate the cube so a new face is the "front" face (i.e. face #2)
    */
-  RotateCube,
+  FocusCube,
   /**
    * Resize the cube. Also resets shape and layout
    */
   ResizeCube,
+  /**
+   * Rotate the cube in a particular direction
+   */
+  RotateCube,
+  /**
+   * Rotate the cube in a particular direction, while facing one way
+   */
+  RotateCubeFromFace,
 }
 
 interface IActionBase<T extends CubeActionType = CubeActionType> {
@@ -74,9 +84,26 @@ interface ICubeResizeAction extends IActionBase<CubeActionType.ResizeCube> {
   readonly newSize: number;
 }
 
-interface ICubeRotateCubeAction extends IActionBase<CubeActionType.RotateCube> {
+interface ICubeRotateCubeAction extends IActionBase<CubeActionType.FocusCube> {
   /** The face to re-focus on */
   readonly focusFace: CubeSide;
+}
+
+interface IRotateCubeAction extends IActionBase<CubeActionType.RotateCube> {
+  /** The axis to rotate along */
+  readonly axis: CubeAxis;
+  /** How many clockwise rotations to do */
+  readonly rotationCount: number;
+}
+
+interface IRotateCubeFromFaceAction
+  extends IActionBase<CubeActionType.RotateCubeFromFace> {
+  /** The face that is being rotated with respect to */
+  readonly faceRef: CubeSide;
+  /** How many rotations to do */
+  readonly rotationCount: number;
+  /** Which direction to rotate in */
+  readonly direction: SliceDirection;
 }
 
 /**
@@ -87,7 +114,9 @@ export type CubeActions =
   | ICubeRotateSliceAction
   | CubeResetCubeAction
   | ICubeRotateCubeAction
-  | ICubeResizeAction;
+  | ICubeResizeAction
+  | IRotateCubeAction
+  | IRotateCubeFromFaceAction;
 
 /**
  * Custom hook to use a custom puzzle cube
@@ -115,13 +144,11 @@ const puzzleReducer: React.Reducer<DeepReadonly<CubeData>, CubeActions> = (
   state: DeepReadonly<CubeData>,
   action: CubeActions,
 ) => {
-  let cubeData: CubeData;
   switch (action.type) {
     case CubeActionType.RotateFace:
-      cubeData = rotateCubeFace(state, action.sideId, action.rotationCount);
-      break;
+      return rotateCubeFace(state, action.sideId, action.rotationCount);
     case CubeActionType.RotateSlice:
-      cubeData = rotateCubeSliceFromFace(
+      return rotateCubeSliceFromFace(
         state,
         action.refSide,
         action.axis,
@@ -130,20 +157,24 @@ const puzzleReducer: React.Reducer<DeepReadonly<CubeData>, CubeActions> = (
         action.direction,
         action.rotationCount,
       );
-      break;
     case CubeActionType.ResizeCube:
-      cubeData = buildCubeOfSize(action.newSize);
-      break;
+      return buildCubeOfSize(action.newSize);
     case CubeActionType.ResetCube:
-      cubeData = buildCubeOfSize(getCubeSize(state));
-      break;
+      return buildCubeOfSize(getCubeSize(state));
+    case CubeActionType.FocusCube:
+      return refocusCube(state, action.focusFace);
     case CubeActionType.RotateCube:
-      cubeData = refocusCube(state, action.focusFace);
-      break;
+      return rotateCube(state, action.axis, action.rotationCount);
+    case CubeActionType.RotateCubeFromFace:
+      return rotateCubeFromFace(
+        state,
+        action.faceRef,
+        action.direction,
+        action.rotationCount,
+      );
     default:
       forceNever(action);
   }
-  return cubeData;
 };
 
 /**

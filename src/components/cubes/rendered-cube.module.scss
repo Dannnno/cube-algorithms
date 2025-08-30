@@ -1,15 +1,37 @@
 .cubeContainer {
   padding: 5px;
   margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   border: 1px solid black;
   width: 100%;
   $cell-size-basis: 12ch;
   --size-ratio: calc(3 / var(--side-size));
   --face-size: calc(var(--size-ratio) * var(--side-size) * #{$cell-size-basis});
   --value-size: calc(var(--size-ratio) * #{$cell-size-basis});
+  display: grid;
+  grid-template-columns: auto 3fr;
+  grid-template-rows: auto;
+  grid-template-areas: "control cube";
+
+  .control {
+    grid-area: control;
+    display: flex;
+    flex: column nowrap;
+    border-right: 1px solid black;
+    margin: 5px;
+    padding: 5px;
+
+    .controlButton {
+      width: var(--face-size);
+      height: var(--face-size);
+    }
+  }
+  .perspectiveWrapper {
+    padding: 2px;
+    grid-area: cube;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
   .face {
     pointer-events: all;
@@ -17,7 +39,7 @@
     grid-template-columns: repeat(var(--side-size), var(--value-size));
     grid-template-rows: repeate(var(--side-size), var(--value-size));
     margin: 0;
-    border: 3px solid black;
+    border: 1px solid black;
     width: var(--face-size);
     height: var(--face-size);
 
@@ -68,11 +90,11 @@
       grid-template-columns: repeat(4, var(--face-size));
       grid-template-rows: repeat(3, var(--face-size));
       grid-template-areas:
-        ".	s5	.	."
+        ".	s5	.	  ."
         "s1	s2	s3	s4"
-        ".	s6	.	.";
-      row-gap: 5px;
-      column-gap: 5px;
+        ".	s6	.	  .";
+      row-gap: calc(var(--side-size) * 3px);
+      column-gap: calc(var(--side-size) * 1px);
 
       .face {
         &.front {

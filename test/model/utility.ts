@@ -1,11 +1,16 @@
 import { expect } from "vitest";
 import { DeepReadonly } from "../../src/common/generics";
 import {
+  CubeAxis,
   CubeData,
   CubeSide,
   CubeSideData,
   getCubeSize,
 } from "../../src/model/cube";
+import {
+  rotateCubeFace,
+  rotateCubeInternalSlice,
+} from "../../src/model/geometry";
 
 export function checkCube(
   actualCube: DeepReadonly<CubeData>,
@@ -44,4 +49,33 @@ function checkCubeSide(
   }
 
   expect(actualSide, `Full Side ${side}`).toStrictEqual(expectedSide);
+}
+
+export function getTestCube(
+  size: number,
+  mutate: boolean = false,
+): DeepReadonly<CubeData> {
+  const length = size * size;
+  const cube = [
+    Array.from({ length }, _ => 1),
+    Array.from({ length }, _ => 2),
+    Array.from({ length }, _ => 3),
+    Array.from({ length }, _ => 4),
+    Array.from({ length }, _ => 5),
+    Array.from({ length }, _ => 6),
+  ];
+
+  if (!mutate) {
+    return cube;
+  }
+
+  const rcf = (cubeData: DeepReadonly<CubeData>, sideId: CubeSide) =>
+    rotateCubeFace(cubeData, sideId, 1);
+  const rcs = (cube: DeepReadonly<CubeData>, axis: CubeAxis) =>
+    rotateCubeInternalSlice(cube, axis, 1, size - 2, 1);
+
+  return rcf(
+    rcf(rcf(rcf(rcf(rcf(rcs(rcs(rcs(cube, "X"), "Y"), "Z"), 1), 2), 3), 4), 5),
+    6,
+  );
 }

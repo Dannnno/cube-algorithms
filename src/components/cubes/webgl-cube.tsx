@@ -36,7 +36,8 @@ export const WebGlCube: React.FC<
       fragmentSource={fsSource}
       clearColor={[0, 0, 0, 1]}
     >
-      {(gl, shaderProgram) => {
+      {p => {
+        const { gl, program: shaderProgram } = p;
         const programInfo = {
           program: shaderProgram,
           attribLocations: {

@@ -39,6 +39,7 @@ export default defineConfig({
       "@hooks": path.resolve(__dirname, "./src/hooks"),
       "@model": path.resolve(__dirname, "./src/model"),
       "@test": path.resolve(__dirname, "./test"),
+      "@hooks": path.resolve(__dirname, "./src/hooks"),
     },
   },
 });

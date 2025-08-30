@@ -189,6 +189,12 @@
       }
     }
   }
+
+  .glCube {
+    width: 1280px;
+    height: 960px;
+    border: 1px solid black;
+  }
 }
 
 // keep this outside b/c it needs to be less selective

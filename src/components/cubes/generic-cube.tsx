@@ -18,6 +18,8 @@ export enum CubeRenderStyle {
   Flat = "Flat",
   /** Three-dimensional */
   ThreeD = "3D",
+  /** Three-dimensional using WebGL */
+  ThreeDWebGl = "3D (WebGL)",
 }
 
 /**

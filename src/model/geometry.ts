@@ -762,6 +762,121 @@ export function refocusCube(
   return newCube;
 }
 
+/**
+ * Rotate an entire cube while facing a certain face
+ * @param cube The cube to be rotated
+ * @param faceRef The face that is our reference point
+ * @param rotateDirection Which direction to rotate in
+ * @param numRotations How many times to rotate it
+ * @returns The cube post rotation
+ */
+export function rotateCubeFromFace(
+  cube: DeepReadonly<CubeData>,
+  faceRef: CubeSide,
+  rotateDirection: SliceDirection,
+  numRotations: number,
+): CubeData {
+  const [axis, sign] = CUBE_FACE_DIRECTION[faceRef][rotateDirection];
+  return rotateCube(cube, axis, numRotations * sign);
+}
+
+const CUBE_FACE_DIRECTION: Record<
+  CubeSide,
+  Record<SliceDirection, readonly [CubeAxis, 1 | -1]>
+> = {
+  [CubeSide.Left]: {
+    [SliceDirection.Left]: ["X", 1],
+    [SliceDirection.Right]: ["X", -1],
+    [SliceDirection.Up]: ["Z", 1],
+    [SliceDirection.Down]: ["Z", -1],
+  },
+  [CubeSide.Front]: {
+    [SliceDirection.Left]: ["X", 1],
+    [SliceDirection.Right]: ["X", -1],
+    [SliceDirection.Up]: ["Y", 1],
+    [SliceDirection.Down]: ["Y", -1],
+  },
+  [CubeSide.Right]: {
+    [SliceDirection.Left]: ["X", 1],
+    [SliceDirection.Right]: ["X", -1],
+    [SliceDirection.Up]: ["Z", -1],
+    [SliceDirection.Down]: ["Z", 1],
+  },
+  [CubeSide.Back]: {
+    [SliceDirection.Left]: ["X", 1],
+    [SliceDirection.Right]: ["X", -1],
+    [SliceDirection.Up]: ["Y", -1],
+    [SliceDirection.Down]: ["Y", 1],
+  },
+  [CubeSide.Top]: {
+    [SliceDirection.Left]: ["Z", -1],
+    [SliceDirection.Right]: ["Z", 1],
+    [SliceDirection.Up]: ["Y", 1],
+    [SliceDirection.Down]: ["Y", -1],
+  },
+  [CubeSide.Bottom]: {
+    [SliceDirection.Left]: ["Z", 1],
+    [SliceDirection.Right]: ["Z", -1],
+    [SliceDirection.Up]: ["Y", 1],
+    [SliceDirection.Down]: ["Y", -1],
+  },
+};
+
+/**
+ * Rotate an entire cube
+ * @param cube The cube to be rotated
+ * @param axis The axis of rotation
+ * @param numRotations How many times to rotate it
+ * @returns The cube post rotation
+ */
+export function rotateCube(
+  cube: DeepReadonly<CubeData>,
+  axis: CubeAxis,
+  numRotations: number,
+): CubeData {
+  const [newCube, cubeSize, numTurns] = _setupManipulation(cube, numRotations);
+  return _rotateCube(newCube, cubeSize, axis, numTurns);
+}
+
+function _rotateCube(
+  cube: CubeData,
+  size: number,
+  axis: CubeAxis,
+  numRotations: RotationAmount,
+): CubeData {
+  // Do all of the slices
+  _rotateCubeInternalSlice(cube, size, axis, 0, size, numRotations);
+
+  // Then fix the perpendicular faces
+  let front: CubeSide;
+  let back: CubeSide;
+  switch (axis) {
+    case "X":
+      front = CubeSide.Top;
+      back = CubeSide.Bottom;
+      break;
+    case "Y":
+      front = CubeSide.Right;
+      back = CubeSide.Left;
+      break;
+    case "Z":
+      front = CubeSide.Front;
+      back = CubeSide.Back;
+      break;
+    default:
+      forceNever(axis);
+  }
+  _rotateCubeFace(cube, size, front, numRotations, true);
+  _rotateCubeFace(
+    cube,
+    size,
+    back,
+    _normalizeRotations(numRotations * -1),
+    true,
+  );
+  return cube;
+}
+
 function _setupManipulation(
   cube: DeepReadonly<CubeData>,
   numRotations: number,

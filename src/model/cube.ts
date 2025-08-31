@@ -1,6 +1,7 @@
 import {
   DeepReadonly,
   LoopStatus,
+  Maybe,
   Tuple,
   assert,
   forEach,
@@ -84,6 +85,37 @@ export type PerCellCallback = {
 };
 
 /**
+ * The type of cube-block this is
+ */
+export enum CubeBlockType {
+  /** This is a center cube (i.e. it only has one valued side) */
+  Center = 1,
+  /** This is an edge cube (i.e. it has two valued sides) */
+  Edge = 2,
+  /** This is a corner cube (i.e. it has three valued sides) */
+  Corner = 3,
+}
+
+/**
+ * An action to take on each block in a cube
+ */
+export type PerBlockCallback = {
+  /**
+   * The action to take on the block
+   * @param cubeSides The sides of the cube, in the normal order (left/front/right/back/top/bottom)
+   * @param coordinates The [X, Y, Z] coordinates of this cube. The top-left cube of the front-side
+   *                    is considered [0, 0, 0]
+   * @param type What type of cube block this is
+   * @returns Whether the loop should abort early (default: no)
+   */
+  (
+    cubeSides: DeepReadonly<Tuple<Maybe<CubeCellValue>, 6>>,
+    coordinates: DeepReadonly<Tuple<number, 3>>,
+    type: CubeBlockType,
+  ): LoopStatus | void;
+};
+
+/**
  * Assert that a value is a valid cube cell
  * @param val The value to check as a valid cube cell
  */
@@ -164,6 +196,55 @@ export function forEachCellOnSide(
   return forEach(side, (cell, ix) =>
     callback(Math.floor(ix / size), ix % size, cell),
   );
+}
+
+/**
+ * Take an action on each block in the cube
+ * @param cube The cube to iterate over
+ * @param callback The action to take on each block
+ * @returns Whether the iteration ended early
+ */
+export function forEachBlockInCube(
+  cube: DeepReadonly<CubeData>,
+  callback: PerBlockCallback,
+): LoopStatus {
+  const size = getCubeSize(cube);
+  assertIsValidCube(cube, size);
+
+  for (let depth = 0; depth < size; ++depth) {
+    for (let row = 0; row < size; ++row) {
+      for (let col = 0; col < size; ++col) {
+        const sides = extractBlockAtIndex(cube, size, depth, row, col);
+        const count = sides.filter(v => !!v).length;
+        if (
+          callback(sides, [depth, row, col], count as CubeBlockType)
+          === LoopStatus.StopLooping
+        ) {
+          return LoopStatus.StopLooping;
+        }
+      }
+    }
+  }
+  return LoopStatus.KeepLooping;
+}
+
+function extractBlockAtIndex(
+  cube: DeepReadonly<CubeData>,
+  size: number,
+  depth: number,
+  row: number,
+  col: number,
+): Tuple<Maybe<CubeCellValue>, 6> {
+  const s1 = size - 1;
+
+  const left = col === 0 ? cube[0][row * size + s1 - depth] : undefined;
+  const front = depth === 0 ? cube[1][row * size + col] : undefined;
+  const right = col === s1 ? cube[2][row * size + depth] : undefined;
+  const back = depth === s1 ? cube[3][row * size + s1 - col] : undefined;
+  const top = row === 0 ? cube[4][size * (s1 - depth) + col] : undefined;
+  const bottom = row === s1 ? cube[5][size * depth + col] : undefined;
+
+  return [left, front, right, back, top, bottom];
 }
 
 /**

@@ -3,14 +3,6 @@ import { CubeData } from "@model/cube";
 import { CubeActions } from "./usePuzzleCube";
 
 /**
- * How to style a given cell in the cube
- */
-interface IPuzzleCubeCellStyle {
-  /** The color to use as the background */
-  readonly color: string;
-}
-
-/**
  * A rendering style for the puzzle cube
  */
 export enum CubeRenderStyle {
@@ -18,6 +10,8 @@ export enum CubeRenderStyle {
   Flat = "Flat",
   /** Three-dimensional */
   ThreeD = "3D",
+  /** Three-dimensional with WebGL */
+  ThreeJs = "3D (ThreeJS)",
 }
 
 /**

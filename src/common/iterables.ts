@@ -69,3 +69,30 @@ export function swapAt<T>(
   left[leftIx] = right[rightIx];
   right[rightIx] = tmp;
 }
+
+type SplitString<
+  TString extends string = string,
+  TDelim extends string = string,
+> = TString extends TDelim
+  ? []
+  : TString extends `${TDelim}${infer U}`
+    ? SplitString<U, TDelim>
+    : TString extends `${infer U}${TDelim}${infer V}`
+      ? [...SplitString<U, TDelim>, ...SplitString<V, TDelim>]
+      : TString extends `${infer U}${TDelim}`
+        ? [...SplitString<U, TDelim>]
+        : [TString];
+
+/**
+ * Split a string in a way that preserves type safety (if the string
+ * and delimiter types can be statically known)
+ * @param value The string to be split
+ * @param delim The delimiter of the string
+ * @returns A type-safe variant of the string
+ */
+export function typeSafeSplit<
+  TString extends string = string,
+  TDelim extends string = string,
+>(value: TString, delim: TDelim): SplitString<TString, TDelim> {
+  return value.split(delim) as SplitString<TString, TDelim>;
+}

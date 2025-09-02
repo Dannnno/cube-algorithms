@@ -10,9 +10,10 @@
     "paths": {
       "@/*": ["src/*"],
       "@assets/*": ["src/assets/*"],
-      "@components/*": ["src/components/*"],
-      "@model/*": ["src/model/*"],
       "@common/*": ["src/common/*"],
+      "@components/*": ["src/components/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@model/*": ["src/model/*"],
       "@test/*": ["test/*"]
     },
 

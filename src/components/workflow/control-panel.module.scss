@@ -1,0 +1,15 @@
+.controlPanelSidebar {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  min-width: 250px;
+  width: 100%;
+  height: 100%;
+
+  & > * {
+    padding: 5px 2px 5px 2px;
+    margin: 2px;
+    border-radius: 5px;
+  }
+}

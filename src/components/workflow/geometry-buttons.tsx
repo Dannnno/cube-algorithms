@@ -1,4 +1,5 @@
 import { forceNever } from "@/common";
+import { ArrowKey, KeyboardShortcut, useKeyboardShortcut } from "@/hooks";
 import { CubeActionType, CubeActions } from "@components/cubes";
 import {
   CubeAxis,
@@ -68,13 +69,19 @@ export const FaceRotationButton: React.FC<IFaceRotationButtonProps> = props => {
       }`,
     [faceId, rotationDirection],
   );
+  const shortcut = `Ctrl+Alt+${faceId}+${
+    rotationDirection === FaceRotationDirection.Clockwise ? "C" : "V"
+  }` as const;
+  useKeyboardShortcut(shortcut, onClick);
+  const safeTitle = `${title} (${shortcut})`;
 
   return (
     <button
       onClick={onClick}
       className={className}
-      title={title}
-      aria-label={title}
+      title={safeTitle}
+      aria-label={safeTitle}
+      tabIndex={0}
     ></button>
   );
 };
@@ -104,31 +111,40 @@ export const SliceRotationButton: React.FC<
     size,
     dispatch,
   } = props;
-  const [className, titleDesc] = useMemo(() => {
+  const [className, titleDesc, arrowKey] = useMemo(() => {
     let directionClassName: string;
     let dirTitleName: string;
+    let arrowKey: ArrowKey;
     switch (rotationDirection) {
       case SliceDirection.Up:
         directionClassName = sliceUp;
         dirTitleName = "up";
+        arrowKey = "ArrowUp";
         break;
       case SliceDirection.Down:
         directionClassName = sliceDown;
         dirTitleName = "down";
+        arrowKey = "ArrowDown";
         break;
       case SliceDirection.Left:
         directionClassName = sliceLeft;
         dirTitleName = "left";
+        arrowKey = "ArrowLeft";
         break;
       case SliceDirection.Right:
         directionClassName = sliceRight;
         dirTitleName = "right";
+        arrowKey = "ArrowRight";
         break;
       default:
         forceNever(rotationDirection);
     }
 
-    return [[actionButton, directionClassName].join(" "), dirTitleName];
+    return [
+      [actionButton, directionClassName].join(" "),
+      dirTitleName,
+      arrowKey,
+    ];
   }, [rotationDirection, axis, sideReference, size]);
 
   const onClick = useCallback(
@@ -151,13 +167,21 @@ export const SliceRotationButton: React.FC<
     const sliceEnd = sliceStart + sliceSize - 1;
     return `Rotate ${axis}-axis [${sliceStart}-${sliceEnd}] ${titleDesc}`;
   }, [titleDesc, sliceStart, sliceSize]);
+  const shortcut =
+    sliceSize > 1
+      ? undefined
+      : size === 3
+        ? (`Ctrl+Alt+${sideReference}+${arrowKey}` as KeyboardShortcut)
+        : (`Ctrl+Alt+${sideReference}+${arrowKey}+${sliceStart}` as KeyboardShortcut);
+  useKeyboardShortcut(shortcut, onClick);
+  const safeTitle = shortcut ? `${title} (${shortcut})` : title;
 
   return (
     <button
       onClick={onClick}
       className={className}
-      title={title}
-      aria-label={title}
+      title={safeTitle}
+      aria-label={safeTitle}
     ></button>
   );
 };
@@ -178,23 +202,20 @@ export const FocusFaceButton: React.FC<IFocusButtonProps> = props => {
       focusFace: sideId,
     });
   }, [cubeDispatch, sideId]);
+  const shortcut = `Ctrl+Alt+${sideId}+F` as const;
+  useKeyboardShortcut(shortcut, callback);
+  const safeTitle = `Focus Face ${sideId} (${shortcut})`;
 
   return (
     <button
       onClick={callback}
       className={`${actionButton} ${focusFace}`}
-      title={`Focus Face ${sideId}`}
-      aria-label={`Focus Face ${sideId}`}
+      title={safeTitle}
+      aria-label={safeTitle}
       disabled={sideId === CubeSide.Front}
     ></button>
   );
 };
-
-interface IRotateWholeCubeButtonProps {
-  readonly dispatch: React.Dispatch<CubeActions>;
-  readonly direction: SliceDirection;
-  readonly axis: CubeAxis;
-}
 
 interface IRotateCubeButtonContainerProps {
   readonly dispatch: React.Dispatch<CubeActions>;
@@ -211,27 +232,7 @@ export const RotateCubeButtonContainer: React.FC<
           dispatch={dispatch}
           axis="Z"
           direction={SliceDirection.Up}
-        />
-      </div>
-      <div className={`${rotateCubeButton} ${zDown}`}>
-        <RotateWholeCubeButton
-          dispatch={dispatch}
-          axis="Z"
-          direction={SliceDirection.Down}
-        />
-      </div>
-      <div className={`${rotateCubeButton} ${left}`}>
-        <RotateWholeCubeButton
-          dispatch={dispatch}
-          axis="X"
-          direction={SliceDirection.Left}
-        />
-      </div>
-      <div className={`${rotateCubeButton} ${right}`}>
-        <RotateWholeCubeButton
-          dispatch={dispatch}
-          axis="X"
-          direction={SliceDirection.Right}
+          shortcut="Ctrl+Alt+Q"
         />
       </div>
       <div className={`${rotateCubeButton} ${up}`}>
@@ -239,6 +240,23 @@ export const RotateCubeButtonContainer: React.FC<
           dispatch={dispatch}
           axis="Y"
           direction={SliceDirection.Up}
+          shortcut="Ctrl+Alt+W"
+        />
+      </div>
+      <div className={`${rotateCubeButton} ${left}`}>
+        <RotateWholeCubeButton
+          dispatch={dispatch}
+          axis="X"
+          direction={SliceDirection.Left}
+          shortcut="Ctrl+Alt+A"
+        />
+      </div>
+      <div className={`${rotateCubeButton} ${right}`}>
+        <RotateWholeCubeButton
+          dispatch={dispatch}
+          axis="X"
+          direction={SliceDirection.Right}
+          shortcut="Ctrl+Alt+D"
         />
       </div>
       <div className={`${rotateCubeButton} ${down}`}>
@@ -246,6 +264,15 @@ export const RotateCubeButtonContainer: React.FC<
           dispatch={dispatch}
           axis="Y"
           direction={SliceDirection.Down}
+          shortcut="Ctrl+Alt+S"
+        />
+      </div>
+      <div className={`${rotateCubeButton} ${zDown}`}>
+        <RotateWholeCubeButton
+          dispatch={dispatch}
+          axis="Z"
+          direction={SliceDirection.Down}
+          shortcut="Ctrl+Alt+E"
         />
       </div>
       <div className={`${rotateCubeButton} ${center}`}>
@@ -255,12 +282,20 @@ export const RotateCubeButtonContainer: React.FC<
   );
 };
 
+interface IRotateWholeCubeButtonProps {
+  readonly dispatch: React.Dispatch<CubeActions>;
+  readonly direction: SliceDirection;
+  readonly axis: CubeAxis;
+  readonly shortcut: KeyboardShortcut;
+}
+
 const RotateWholeCubeButton: React.FC<IRotateWholeCubeButtonProps> = props => {
-  const { dispatch, direction, axis } = props;
-  const [className, sign, title] = useMemo(
-    () => ROTATE_CUBE_CLASSNAME_MAPPING[axis][direction]!,
-    [axis, direction],
-  );
+  const { dispatch, direction, axis, shortcut } = props;
+  const [className, sign, title] = useMemo(() => {
+    const [className, sign, title] =
+      ROTATE_CUBE_CLASSNAME_MAPPING[axis][direction]!;
+    return [className, sign, `${title} (${shortcut})`];
+  }, [axis, direction]);
   const callback = useCallback(
     () =>
       dispatch({
@@ -270,6 +305,7 @@ const RotateWholeCubeButton: React.FC<IRotateWholeCubeButtonProps> = props => {
       }),
     [axis, sign],
   );
+  useKeyboardShortcut(shortcut, callback);
 
   return (
     <button

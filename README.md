@@ -24,4 +24,4 @@ Algorithms and visualizations of how to solve 3D Puzzle Cubes
 - [ ] Automatic puzzle solving
 - [ ] Algorithm searching
 - [ ] Algorithm storage
-- [ ] Algorithm free-play
+- [x] Algorithm free-play

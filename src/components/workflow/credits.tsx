@@ -107,6 +107,28 @@ export const Credits: React.FC<{}> = _ => {
         "https://game-icons.net/1x1/delapouite/horizontal-flip.html",
       ],
     },
+    {
+      creator: ["Delapouite", "https://delapouite.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/flat-platform.svg",
+        "Flat platform icon",
+        "https://game-icons.net/1x1/delapouite/flat-platform.html",
+      ],
+    },
+    {
+      creator: ["Delapouite", "https://delapouite.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/cube.svg",
+        "Cube icon",
+        "https://game-icons.net/1x1/delapouite/cube.html",
+      ],
+    },
   ];
   const grouped = groupCredits(creditList);
 

@@ -1,6 +1,7 @@
 import { DeepReadonly, isBoundedInteger } from "@/common";
 import { CubeData, getCubeSize } from "@/model/cube";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { IconButton } from "../common";
 import {
   CubeActionType,
   CubeActions,
@@ -8,12 +9,7 @@ import {
   usePuzzleCube,
   usePuzzleCubeHash,
 } from "../cubes";
-import {
-  controlPanelSidebar,
-  reset,
-  resize,
-  styleSelect,
-} from "./control-panel.module.scss";
+import { controlPanelSidebar, styleSelect } from "./control-panel.module.scss";
 import { RotateCubeButtonContainer } from "./geometry-buttons";
 
 interface IControlPanelProps {
@@ -114,43 +110,38 @@ export const ControlPanel: React.FC<IControlPanelProps> = props => {
   return (
     <>
       <div className={controlPanelSidebar}>
-        <div className={resize}>
-          <label htmlFor="resize-input">New Size: </label>
-          <select
-            id="resize-input"
-            name="resize-input"
-            value={cubeSize}
-            onChange={onSizeOptionChange}
-          >
-            {Array.from({ length: 7 }, (_, ix) => (
-              <option key={ix + 2} value={ix + 2}>
-                {ix + 2}
-              </option>
-            ))}
-          </select>
-          &nbsp;
-          <label htmlFor="resize-input-button">Resize: </label>
-          <button
-            id="resize-input-button"
-            name="resize-input-button"
-            title={`Resize the cube to be ${cubeSize}x${cubeSize}x${cubeSize}`}
-            aria-label={`Resize the cube to be ${cubeSize}x${cubeSize}x${cubeSize}`}
-            onClick={onClickResizeCube}
-            disabled={!resizeEnabled}
-          ></button>
-        </div>
+        <label htmlFor="resize-input">New Size: </label>
+        <select
+          id="resize-input"
+          name="resize-input"
+          value={cubeSize}
+          onChange={onSizeOptionChange}
+        >
+          {Array.from({ length: 7 }, (_, ix) => (
+            <option key={ix + 2} value={ix + 2}>
+              {ix + 2}
+            </option>
+          ))}
+        </select>
+        <IconButton
+          label={`Resi&ze to ${cubeSize}x${cubeSize}x${cubeSize}`}
+          iconKey="progression"
+          alt={`Resize the cube to be ${cubeSize}x${cubeSize}x${cubeSize}`}
+          onClick={onClickResizeCube}
+          disabled={!resizeEnabled || calculatedSize === cubeSize}
+          labelAsText
+          shortcut="Ctrl+Alt+Z"
+        />
 
-        <div className={reset}>
-          <label htmlFor="reset-button">Reset: </label>
-          <button
-            id="reset-button"
-            name="reset-button"
-            title={`Reset the cube`}
-            aria-label={`Reset the cube`}
-            onClick={onClickResetCube}
-            disabled={!resetEnabled}
-          ></button>
-        </div>
+        <IconButton
+          label="&Reset Cube"
+          alt="Reset the cube to its original state"
+          onClick={onClickResetCube}
+          disabled={!resetEnabled}
+          iconKey="cycle"
+          labelAsText
+          shortcut="Ctrl+Alt+R"
+        />
 
         <div className={styleSelect}>
           <label htmlFor="cube-style-select">Pick a cube style:&nbsp;</label>

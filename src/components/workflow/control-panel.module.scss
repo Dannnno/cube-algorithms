@@ -12,8 +12,7 @@
     margin: 2px;
     border-radius: 5px;
   }
-  .resize,
-  .reset,
+
   .styleSelect {
     border: 1px solid black;
     padding: 5px;
@@ -23,33 +22,5 @@
     justify-content: center;
     gap: 5px;
     max-width: 100%;
-
-    button {
-      padding: 5px;
-      width: 25px;
-      height: 25px;
-      background-color: #ffffff;
-      background-size: cover;
-      border-radius: 15%;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: border-color 0.25s;
-
-      &:disabled {
-        background-color: #808080;
-      }
-    }
-  }
-
-  .resize {
-    button {
-      background-image: url("/src/assets/progression.svg");
-    }
-  }
-
-  .reset {
-    button {
-      background-image: url("/src/assets/cycle.svg");
-    }
   }
 }

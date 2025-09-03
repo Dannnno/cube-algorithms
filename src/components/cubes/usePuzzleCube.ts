@@ -11,6 +11,7 @@ import {
   rotateCube,
   rotateCubeFace,
   rotateCubeFromFace,
+  rotateCubeInternalSlice,
   rotateCubeSliceFromFace,
 } from "@model/geometry";
 import React, { useMemo, useReducer } from "react";
@@ -27,6 +28,10 @@ export const enum CubeActionType {
    * Rotate an internal slice
    */
   RotateSlice,
+  /**
+   * Rotate an internal slice without referencing a face
+   */
+  RotateFacelessSlice,
   /**
    * Reset the cube to it's default shape and layout
    */
@@ -77,6 +82,18 @@ interface ICubeRotateSliceAction
   readonly refSide: CubeSide;
 }
 
+interface ICubeRotateFacelessSliceAction
+  extends IActionBase<CubeActionType.RotateFacelessSlice> {
+  /** Which axis to rotate the internal slices on */
+  readonly axis: CubeAxis;
+  /** How far into the cube to slice it */
+  readonly offsetIndex: number;
+  /** How many rows to slice at a time */
+  readonly offsetSize: number;
+  /** How many clockwise rotations to do */
+  readonly rotationCount: number;
+}
+
 type CubeResetCubeAction = IActionBase<CubeActionType.ResetCube>;
 
 interface ICubeResizeAction extends IActionBase<CubeActionType.ResizeCube> {
@@ -84,7 +101,7 @@ interface ICubeResizeAction extends IActionBase<CubeActionType.ResizeCube> {
   readonly newSize: number;
 }
 
-interface ICubeRotateCubeAction extends IActionBase<CubeActionType.FocusCube> {
+interface ICubeFocusFaceAction extends IActionBase<CubeActionType.FocusCube> {
   /** The face to re-focus on */
   readonly focusFace: CubeSide;
 }
@@ -112,8 +129,9 @@ interface IRotateCubeFromFaceAction
 export type CubeActions =
   | ICubeRotateFaceAction
   | ICubeRotateSliceAction
+  | ICubeRotateFacelessSliceAction
   | CubeResetCubeAction
-  | ICubeRotateCubeAction
+  | ICubeFocusFaceAction
   | ICubeResizeAction
   | IRotateCubeAction
   | IRotateCubeFromFaceAction;
@@ -155,6 +173,14 @@ const puzzleReducer: React.Reducer<DeepReadonly<CubeData>, CubeActions> = (
         action.offsetIndex,
         action.offsetSize,
         action.direction,
+        action.rotationCount,
+      );
+    case CubeActionType.RotateFacelessSlice:
+      return rotateCubeInternalSlice(
+        state,
+        action.axis,
+        action.offsetIndex,
+        action.offsetSize,
         action.rotationCount,
       );
     case CubeActionType.ResizeCube:

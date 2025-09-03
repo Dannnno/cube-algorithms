@@ -1,6 +1,11 @@
 import { DeepReadonly, forceNever } from "@/common";
 import React from "react";
-import { credits } from "./credits.module.scss";
+import {
+  creditItem,
+  credits,
+  divider,
+  resourceList,
+} from "./credits.module.scss";
 
 /**
  * Component that displays resources that need attribution, e.g.
@@ -15,7 +20,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/clockwise-rotation.svg",
-        "Clockwise Rotation Icon",
+        "Clockwise Rotation",
         "https://game-icons.net/1x1/delapouite/clockwise-rotation.html",
       ],
     },
@@ -26,7 +31,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/anticlockwise-rotation.svg",
-        "Anticlockwise Rotation Icon",
+        "Anticlockwise Rotation",
         "https://game-icons.net/1x1/delapouite/anticlockwise-rotation.html",
       ],
     },
@@ -37,7 +42,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/cycle.svg",
-        "Cycle Icon",
+        "Cycle",
         "https://game-icons.net/1x1/lorc/cycle.html",
       ],
     },
@@ -48,7 +53,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/progression.svg",
-        "Progression Icon",
+        "Progression",
         "https://game-icons.net/1x1/delapouite/progression.html",
       ],
     },
@@ -59,7 +64,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/eye-target.svg",
-        "Eye target icon",
+        "Eye target",
         "https://game-icons.net/1x1/delapouite/eye-target.html",
       ],
     },
@@ -70,7 +75,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/sideswipe.svg",
-        "Sideswipe icon",
+        "Sideswipe",
         "https://game-icons.net/1x1/felbrigg/sideswipe.html",
       ],
     },
@@ -81,7 +86,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/sideSwipeRight.svg",
-        "Sideswipe Right icon (Mirror of Sideswipe)",
+        "Sideswipe Right",
         "https://game-icons.net/1x1/felbrigg/sideswipe.html",
       ],
     },
@@ -92,7 +97,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/overhead.svg",
-        "Overhead icon",
+        "Overhead",
         "https://game-icons.net/1x1/felbrigg/overhead.html",
       ],
     },
@@ -103,7 +108,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/underhand.svg",
-        "Underhand icon",
+        "Underhand",
         "https://game-icons.net/1x1/felbrigg/underhand.html",
       ],
     },
@@ -113,19 +118,8 @@ export const Credits: React.FC<{}> = _ => {
       license: License.CcBy30,
       type: CreditType.Image,
       resource: [
-        "/src/assets/horizontal-flip.svg",
-        "Horizontal Flip icon",
-        "https://game-icons.net/1x1/delapouite/horizontal-flip.html",
-      ],
-    },
-    {
-      creator: ["Delapouite", "https://delapouite.com/"],
-      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
-      license: License.CcBy30,
-      type: CreditType.Image,
-      resource: [
         "/src/assets/flat-platform.svg",
-        "Flat platform icon",
+        "Flat platform",
         "https://game-icons.net/1x1/delapouite/flat-platform.html",
       ],
     },
@@ -136,7 +130,7 @@ export const Credits: React.FC<{}> = _ => {
       type: CreditType.Image,
       resource: [
         "/src/assets/cube.svg",
-        "Cube icon",
+        "Cube",
         "https://game-icons.net/1x1/delapouite/cube.html",
       ],
     },
@@ -144,23 +138,17 @@ export const Credits: React.FC<{}> = _ => {
   const grouped = groupCredits(creditList);
 
   return (
-    <div className={credits}>
-      <h4>Credits</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>Creator</th>
-            <th>License</th>
-            <th>Retrieved From</th>
-            <th>Resource</th>
-            <th>Resource Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          <GroupedCredits credits={grouped} />
-        </tbody>
-      </table>
-    </div>
+    <>
+      <h3>Credits</h3>
+      <div className={credits}>
+        <div>Creator</div>
+        <div>License</div>
+        <div>Retrieved From</div>
+        <div>Resources</div>
+        <div className={divider} />
+        <GroupedCredits credits={grouped} />
+      </div>
+    </>
   );
 };
 export default Credits;
@@ -170,121 +158,56 @@ const GroupedCredits: React.FC<{
 }> = props => {
   const { credits } = props;
 
-  const rows: React.ReactElement[] = [];
+  const rows: React.ReactNode[] = [];
   for (const creator in credits) {
-    let creatorFirst = true;
     const licenses = credits[creator];
     for (const license in licenses.group) {
-      let licenseFirst = true;
       const licenseType = license as License;
       const sites = licenses.group[licenseType]!;
       for (const site in sites.group) {
         const mySite = sites.group[site];
-        mySite.resources.forEach(
-          ([type, resource, resourceName, resourceUrl], ix) => {
-            const key = `${creator}^${type}^${license}^${site}^${ix}`;
-            const creditProps = {
-              creatorFirst: ix === 0 && creatorFirst,
-              creatorSpan: licenses.count,
-              resourceCreator: creator,
-              resourceCreatorUrl: licenses.creatorUrl,
-              license: licenseType,
-              licenseSpan: sites.count,
-              licenseFirst: ix === 0 && licenseFirst,
-              retrievedFrom: site,
-              retrievedFromUrl: mySite.retrievedFromUrl,
-              siteSpan: mySite.resources.length,
-              siteFirst: ix === 0,
-              resource: resource,
-              resourceName: resourceName,
-              resourceUrl: resourceUrl,
-            };
-            switch (type) {
-              case CreditType.Image:
-                rows.push(<ImageCreditRow {...creditProps} key={key} />);
-                break;
-              default:
-                forceNever(type);
-            }
-          },
+        rows.push(
+          <div>
+            <a href={licenses.creatorUrl}>{creator}</a>
+          </div>,
+          <div>
+            <a href={LicenseUrls[licenseType]}>{licenseType}</a>
+          </div>,
+          <div>
+            <a href={mySite.retrievedFromUrl}>{site}</a>
+          </div>,
+          <div className={resourceList}>
+            {...mySite.resources.map(
+              ([type, resource, resourceName, resourceUrl], ix) => {
+                switch (type) {
+                  case CreditType.Image:
+                    return (
+                      <div
+                        className={creditItem}
+                        key={`${type}^${resource}^${ix}`}
+                      >
+                        <a href={resourceUrl}>
+                          <img src={resource} width={50} height={50} />
+                          <br />
+                          {resourceName}
+                        </a>
+                      </div>
+                    );
+                  default:
+                    forceNever(type);
+                }
+              },
+            )}
+          </div>,
+          <div className={divider} />,
         );
-        licenseFirst = false;
       }
-      creatorFirst = false;
     }
   }
   return <>{rows}</>;
 };
 
 type Url = string;
-
-interface ICreditRowProps {
-  readonly resource: unknown;
-  readonly resourceName: string;
-  readonly resourceUrl: Url;
-  readonly resourceCreator: string;
-  readonly resourceCreatorUrl: Url;
-  readonly retrievedFrom: string;
-  readonly retrievedFromUrl: Url;
-  readonly license: License;
-  readonly creatorSpan: number;
-  readonly creatorFirst?: boolean;
-  readonly licenseSpan: number;
-  readonly licenseFirst?: boolean;
-  readonly siteSpan: number;
-  readonly siteFirst?: boolean;
-}
-
-interface IImageCreditRowProps extends ICreditRowProps {
-  readonly resource: string;
-}
-
-const ImageCreditRow: React.FC<IImageCreditRowProps> = props => {
-  const {
-    resource,
-    resourceName,
-    resourceUrl,
-    resourceCreator,
-    resourceCreatorUrl,
-    creatorSpan,
-    creatorFirst = false,
-    retrievedFrom,
-    retrievedFromUrl,
-    siteSpan,
-    siteFirst = false,
-    license,
-    licenseSpan,
-    licenseFirst = false,
-  } = props;
-  return (
-    <tr>
-      {creatorFirst && (
-        <td rowSpan={creatorSpan}>
-          <a href={resourceCreatorUrl}>{resourceCreator}</a>
-        </td>
-      )}
-      {licenseFirst && (
-        <td rowSpan={licenseSpan}>
-          <a href={LicenseUrls[license]}>{license}</a>
-        </td>
-      )}
-      {siteFirst && (
-        <td rowSpan={siteSpan}>
-          <a href={retrievedFromUrl}>{retrievedFrom}</a>
-        </td>
-      )}
-      <td>
-        <a href={resourceUrl}>
-          <img src={resource} width={50} height={50} />
-          <br />
-        </a>
-      </td>
-      <td>
-        <a href={resourceUrl}>{resourceName}</a>
-      </td>
-    </tr>
-  );
-};
 
 enum CreditType {
   Image,
@@ -303,7 +226,7 @@ type NamedUrl = readonly [string, string];
 type IGroupedCredits = Record<
   string, // creator name
   {
-    readonly creatorUrl: string;
+    readonly creatorUrl: Url;
     count: number;
     readonly group: Partial<
       Record<
@@ -313,7 +236,7 @@ type IGroupedCredits = Record<
           readonly group: Record<
             string, // retrieved from,
             {
-              readonly retrievedFromUrl: string;
+              readonly retrievedFromUrl: Url;
               readonly resources: (readonly [
                 CreditType,
                 string,

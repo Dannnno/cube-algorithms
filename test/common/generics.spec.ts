@@ -1,6 +1,6 @@
 import { assertType, describe, expectTypeOf, it } from "vitest";
 
-import { DeepReadonly, Tuple } from "../../src/common/generics";
+import { DeepReadonly, ElementOf, Tuple } from "../../src/common/generics";
 
 describe("DeepReadonly", () => {
   it("DeepReadonly<primitive>", () => {
@@ -109,5 +109,49 @@ describe("Tuple<T, N>", () => {
     const arr3: readonly [number, number, number] = [1, 2, 3];
     // @ts-expect-error Tuple doesn't require readonly
     assertType<Tuple<number, 3>>(arr3);
+  });
+});
+
+describe("ElementOf<T>", () => {
+  const array = [1, 2, 3];
+  const tuple = [1, 2, 3] as const;
+  const mixedTypeArray = [1, "hi", 3];
+  const mixedTypeTuple = [1, "hi", 3] as const;
+  const object = {};
+  const set = new Set();
+  const primitive = 7;
+  it("handles arrays", () => {
+    assertType<ElementOf<typeof array>>(1);
+    // @ts-expect-error "hi" is not a number
+    assertType<ElementOf<typeof array>>("hi");
+  });
+  it("handles tuples", () => {
+    assertType<ElementOf<typeof tuple>>(1);
+    // @ts-expect-error "hi" is not a number
+    assertType<ElementOf<typeof tuple>>("hi");
+    // @ts-expect-error 4 is not in the tuple
+    assertType<ElementOf<typeof tuple>>(4);
+  });
+  it("handles mixed-type arrays", () => {
+    assertType<ElementOf<typeof mixedTypeArray>>(1);
+    assertType<ElementOf<typeof mixedTypeArray>>("hi");
+    // @ts-expect-error true is not a number or string
+    assertType<ElementOf<typeof mixedTypeArray>>(true);
+  });
+  it("handles mixed-type tuples", () => {
+    assertType<ElementOf<typeof mixedTypeTuple>>(1);
+    assertType<ElementOf<typeof mixedTypeTuple>>("hi");
+    // @ts-expect-error true is not a number or string
+    assertType<ElementOf<typeof mixedTypeTuple>>(true);
+    // @ts-expect-error 4 is not in the tuple
+    assertType<ElementOf<typeof mixedTypeTuple>>(4);
+  });
+  it("handles non-arrays", () => {
+    // @ts-expect-error 1 is not assignable to type never
+    assertType<ElementOf<typeof object>>(1);
+    // @ts-expect-error "hi" is not assignable to type never
+    assertType<ElementOf<typeof set>>("hi");
+    // @ts-expect-error true is not assignable to type never
+    assertType<ElementOf<typeof primitive>>(true);
   });
 });

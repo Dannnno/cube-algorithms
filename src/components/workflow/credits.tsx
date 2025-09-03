@@ -134,6 +134,17 @@ export const Credits: React.FC<{}> = _ => {
         "https://game-icons.net/1x1/delapouite/cube.html",
       ],
     },
+    {
+      creator: ["Lorc", "https://delapouite.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/magic-swirl.svg",
+        "Magic swirl",
+        "https://game-icons.net/1x1/lorc/magic-swirl.html",
+      ],
+    },
   ];
   const grouped = groupCredits(creditList);
 
@@ -167,16 +178,19 @@ const GroupedCredits: React.FC<{
       for (const site in sites.group) {
         const mySite = sites.group[site];
         rows.push(
-          <div>
+          <div key={`Creator^${creator}^${license}^${site}`}>
             <a href={licenses.creatorUrl}>{creator}</a>
           </div>,
-          <div>
+          <div key={`License^${creator}^${license}^${site}`}>
             <a href={LicenseUrls[licenseType]}>{licenseType}</a>
           </div>,
-          <div>
+          <div key={`Site^${creator}^${license}^${site}`}>
             <a href={mySite.retrievedFromUrl}>{site}</a>
           </div>,
-          <div className={resourceList}>
+          <div
+            className={resourceList}
+            key={`ResourceList^${creator}^${license}^${site}`}
+          >
             {...mySite.resources.map(
               ([type, resource, resourceName, resourceUrl], ix) => {
                 switch (type) {
@@ -199,7 +213,10 @@ const GroupedCredits: React.FC<{
               },
             )}
           </div>,
-          <div className={divider} />,
+          <div
+            className={divider}
+            key={`Divider^${creator}^${license}^${site}`}
+          />,
         );
       }
     }

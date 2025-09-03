@@ -1,0 +1,59 @@
+.algorithmParser {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+  max-width: 300px;
+  width: 100%;
+
+  label {
+    padding-top: 10px;
+  }
+
+  textArea {
+    &:hover {
+      border-color: #646cff;
+    }
+    &:focus,
+    &:focus-visible {
+      outline: 4px auto -webkit-focus-ring-color;
+    }
+    &.invalid {
+      border: 1px solid #cc0000;
+      background-color: #ed4337;
+
+      &:hover {
+        border-color: #ff0000;
+      }
+    }
+  }
+
+  .match.invalid {
+    font-family: "Courier New", Courier, monospace;
+    border: 1px solid #cc0000;
+    background-color: #ed4337;
+  }
+
+  .executing {
+    display: none;
+    border: 2px solid black;
+    background-color: #0070a0;
+    color: white;
+    font-family: "Courier New", Courier, monospace;
+    padding: 5px;
+
+    &.running {
+      display: block;
+    }
+
+    span {
+      padding: 5px;
+
+      &.hilite {
+        font-size: 2em;
+        padding: 10px;
+        background-color: magenta;
+        color: black;
+      }
+    }
+  }
+}

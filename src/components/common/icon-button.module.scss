@@ -1,0 +1,47 @@
+.iconButton,
+.textButton {
+  background-color: #c0c0c0;
+  color: black;
+  background-size: cover;
+  border-radius: 5%;
+  border: 1px solid transparent;
+  padding: 0.4em 0.6em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+
+  &:not(.inlineLabel),
+  &:not(.textButton) {
+    background-size: cover;
+  }
+  &:disabled {
+    background-color: #808080;
+    font-style: italic;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled) {
+    &:hover {
+      border-color: #646cff;
+    }
+    &:focus,
+    &:focus-visible {
+      outline: 4px auto -webkit-focus-ring-color;
+    }
+  }
+
+  &.inlineLabel {
+    display: grid;
+    grid-template-columns: 20px auto;
+    grid-template-rows: auto;
+    grid-gap: 5px;
+
+    .icon {
+      background-size: cover;
+      width: 20px;
+      height: 20px;
+    }
+  }
+}

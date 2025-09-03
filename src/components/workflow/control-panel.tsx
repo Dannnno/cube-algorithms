@@ -1,7 +1,11 @@
-import { DeepReadonly, isBoundedInteger } from "@/common";
+import { DeepReadonly } from "@/common";
+import {
+  IconButton,
+  OptionList,
+  OptionListRenderStyle,
+} from "@/components/common";
 import { CubeData, getCubeSize } from "@/model/cube";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { IconButton } from "../common";
 import {
   CubeActionType,
   CubeActions,
@@ -9,7 +13,7 @@ import {
   usePuzzleCube,
   usePuzzleCubeHash,
 } from "../cubes";
-import { controlPanelSidebar, styleSelect } from "./control-panel.module.scss";
+import { controlPanelSidebar } from "./control-panel.module.scss";
 import { RotateCubeButtonContainer } from "./geometry-buttons";
 
 interface IControlPanelProps {
@@ -51,24 +55,14 @@ export const ControlPanel: React.FC<IControlPanelProps> = props => {
     () => cubeHash !== defaultCubeHash,
     [cubeHash, defaultCubeHash],
   );
-  const calculatedSize = useMemo(() => getCubeSize(puzzleCube), [puzzleCube]);
-
+  const calculatedSize = useMemo(() => {
+    void cubeHash;
+    return getCubeSize(puzzleCube);
+  }, [puzzleCube, cubeHash]);
   useEffect(() => setResetEnabled(cubeHasChanged), [cubeHasChanged]);
-
-  const cubeStyleOptions = useMemo(
-    () =>
-      Object.values(CubeRenderStyle).map(value => (
-        <option value={value} key={value}>
-          {value}
-        </option>
-      )),
-    [renderStyle],
-  );
-
-  const onCubeStyleOptionChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) =>
-      setCubeRenderStyle(event.target.value as CubeRenderStyle),
-    [renderStyle],
+  useEffect(
+    () => setResizeEnabled(calculatedSize !== +cubeSize),
+    [calculatedSize, cubeSize],
   );
 
   const onClickResetCube = useCallback(() => {
@@ -89,79 +83,66 @@ export const ControlPanel: React.FC<IControlPanelProps> = props => {
         type: CubeActionType.ResizeCube,
         newSize: cubeSize,
       });
-      setResizeEnabled(false);
     }
-  }, [cubeSize, dispatch, resizeEnabled, setResizeEnabled, calculatedSize]);
-
-  const onSizeOptionChange = useCallback(() => {
-    const input = document.getElementById(
-      "resize-input",
-    ) as HTMLInputElement | null;
-    if (!input) {
-      return;
-    }
-    const newSize = Number.parseInt(input.value);
-    if (isBoundedInteger(newSize, 2, 9)) {
-      setCubeSize(newSize);
-      setResizeEnabled(newSize !== calculatedSize);
-    }
-  }, [setCubeSize, calculatedSize]);
+  }, [cubeSize, dispatch, resizeEnabled, calculatedSize]);
 
   return (
-    <>
-      <div className={controlPanelSidebar}>
-        <label htmlFor="resize-input">New Size: </label>
-        <select
-          id="resize-input"
-          name="resize-input"
-          value={cubeSize}
-          onChange={onSizeOptionChange}
-        >
-          {Array.from({ length: 7 }, (_, ix) => (
-            <option key={ix + 2} value={ix + 2}>
-              {ix + 2}
-            </option>
-          ))}
-        </select>
-        <IconButton
-          label={`Resi&ze to ${cubeSize}x${cubeSize}x${cubeSize}`}
-          iconKey="progression"
-          alt={`Resize the cube to be ${cubeSize}x${cubeSize}x${cubeSize}`}
-          onClick={onClickResizeCube}
-          disabled={!resizeEnabled || calculatedSize === cubeSize}
-          labelAsText
-          shortcut="Ctrl+Alt+Z"
-        />
+    <div className={controlPanelSidebar}>
+      <OptionList
+        renderStyle={OptionListRenderStyle.Dropdown}
+        label="&New Size"
+        boundValue={cubeSize}
+        setBoundValue={setCubeSize}
+        options={Array.from({ length: 8 }, (_, ix) => ({
+          label: `${ix + 2}`,
+          value: ix + 2,
+        }))}
+        shortcut="Ctrl+Alt+N"
+      />
+      <IconButton
+        label={`Resi&ze to ${cubeSize}x${cubeSize}x${cubeSize}`}
+        iconKey="progression"
+        alt={`Resize the cube to be ${cubeSize}x${cubeSize}x${cubeSize}`}
+        onClick={onClickResizeCube}
+        disabled={!resizeEnabled || calculatedSize === cubeSize}
+        labelAsText
+        shortcut="Ctrl+Alt+Z"
+      />
 
-        <IconButton
-          label="&Reset Cube"
-          alt="Reset the cube to its original state"
-          onClick={onClickResetCube}
-          disabled={!resetEnabled}
-          iconKey="cycle"
-          labelAsText
-          shortcut="Ctrl+Alt+R"
-        />
+      <IconButton
+        label="&Reset Cube"
+        alt="Reset the cube to its original state"
+        onClick={onClickResetCube}
+        disabled={!resetEnabled}
+        iconKey="cycle"
+        labelAsText
+        shortcut="Ctrl+Alt+R"
+      />
 
-        <div className={styleSelect}>
-          <label htmlFor="cube-style-select">Pick a cube style:&nbsp;</label>
-          <select
-            name="cube-style"
-            id="cube-style-select"
-            required
-            onChange={onCubeStyleOptionChange}
-            value={renderStyle}
-          >
-            {cubeStyleOptions}
-          </select>
-        </div>
-
-        <div>
-          <label>Rotate Whole Cube: </label>
-          <RotateCubeButtonContainer dispatch={dispatch} />
-        </div>
+      <OptionList<CubeRenderStyle>
+        renderStyle={OptionListRenderStyle.Buttons}
+        label="&Pick a cube style"
+        boundValue={renderStyle}
+        setBoundValue={setCubeRenderStyle}
+        shortcut="Ctrl+Alt+P"
+        options={[
+          {
+            value: CubeRenderStyle.Flat,
+            label: `Flat`,
+            iconKey: "flat-platform",
+          },
+          {
+            value: CubeRenderStyle.ThreeD,
+            label: `3D`,
+            iconKey: "cube",
+          },
+        ]}
+      />
+      <div>
+        <label>Rotate Whole Cube: </label>
+        <RotateCubeButtonContainer dispatch={dispatch} />
       </div>
-    </>
+    </div>
   );
 };
 

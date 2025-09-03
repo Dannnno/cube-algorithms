@@ -43,8 +43,7 @@ button.actionButton {
     background-image: url("/src/assets/sideswipe.svg");
   }
   &.sliceRight {
-    background-image: url("/src/assets/sideswipe.svg");
-    transform: scaleX(-1);
+    background-image: url("/src/assets/sideSwipeRight.svg");
   }
   &.sliceUp {
     background-image: url("/src/assets/overhead.svg");
@@ -59,19 +58,20 @@ button.actionButton {
   height: 100%;
   background-color: #e0e0e0;
   display: grid;
-  grid-template-columns: repeat(3, 33.3%);
-  grid-template-rows: repeat(3, 33.3%);
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
   grid-template-areas:
     "zUp    up   ."
     "left center right"
     ".    down   zDown";
 
   .rotateCubeButton {
-    border: 1px dashed black;
     grid-area: center;
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100px;
+    height: 100px;
 
     &.center {
       img {

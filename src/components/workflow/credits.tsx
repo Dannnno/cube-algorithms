@@ -80,6 +80,17 @@ export const Credits: React.FC<{}> = _ => {
       license: License.CcBy30,
       type: CreditType.Image,
       resource: [
+        "/src/assets/sideSwipeRight.svg",
+        "Sideswipe Right icon (Mirror of Sideswipe)",
+        "https://game-icons.net/1x1/felbrigg/sideswipe.html",
+      ],
+    },
+    {
+      creator: ["Felbrigg", "https://blackdogofdoom.blogspot.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
         "/src/assets/overhead.svg",
         "Overhead icon",
         "https://game-icons.net/1x1/felbrigg/overhead.html",

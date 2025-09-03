@@ -10,7 +10,13 @@ import {
   forEachSide,
   getCubeSize,
 } from "@model/cube";
-import React, { useMemo } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   FaceRotationButton,
   FocusFaceButton,
@@ -31,6 +37,7 @@ import styles, {
   left,
   perspectiveWrapper,
   right,
+  showButtons,
   threeD,
   top,
 } from "./rendered-cube.module.scss";
@@ -49,6 +56,21 @@ export const RenderedCube: React.FC<IReactCubeProps> = props => {
   const { cubeData, cubeDispatch, renderStyle } = props;
   const size = getCubeSize(cubeData);
   const cssVars = asCssVars(["--side-size", size]);
+  const [anyHasFocus, setAnyHasFocus] = useState(false);
+  const cubeDivRef = useRef<HTMLDivElement>(null);
+
+  const checkFocus = useCallback(
+    (event: FocusEvent) =>
+      setAnyHasFocus(
+        cubeDivRef.current?.contains(event.target as HTMLElement) || false,
+      ),
+    [],
+  );
+
+  useEffect(() => {
+    document.addEventListener("focusin", checkFocus);
+    return () => document.removeEventListener("focusin", checkFocus);
+  }, [checkFocus]);
 
   let renderStyleClass: string;
   switch (renderStyle) {
@@ -61,27 +83,32 @@ export const RenderedCube: React.FC<IReactCubeProps> = props => {
     default:
       forceNever(renderStyle);
   }
+  const allClasses = [
+    cubeContainer,
+    renderStyleClass,
+    anyHasFocus ? showButtons : undefined,
+  ]
+    .filter(v => v)
+    .join(" ");
 
   const sides: React.ReactElement[] = [];
-  forEachSide(cubeData, (sideId, data) =>
-    sides.push(
-      <RenderedCubeSide
-        key={sideId}
-        sideId={sideId}
-        size={size}
-        side={data}
-        cubeDispatch={cubeDispatch}
-      />,
-    ),
-  );
+  forEachSide(cubeData, (sideId, data) => {
+    if (sideIsVisible(sideId, renderStyle)) {
+      sides.push(
+        <RenderedCubeSide
+          key={sideId}
+          sideId={sideId}
+          size={size}
+          side={data}
+          cubeDispatch={cubeDispatch}
+        />,
+      );
+    }
+  });
 
   return (
     <>
-      <div
-        className={`${cubeContainer} ${renderStyleClass}`}
-        style={cssVars}
-        tabIndex={0}
-      >
+      <div className={allClasses} style={cssVars} tabIndex={0} ref={cubeDivRef}>
         <div className={perspectiveWrapper}>
           <div className={cubePerspective}>
             <div className={cube}>{...sides}</div>
@@ -91,6 +118,18 @@ export const RenderedCube: React.FC<IReactCubeProps> = props => {
     </>
   );
 };
+
+function sideIsVisible(
+  sideId: CubeSide,
+  renderStyle: CubeRenderStyle,
+): boolean {
+  return (
+    renderStyle === CubeRenderStyle.Flat
+    || sideId === CubeSide.Front
+    || sideId === CubeSide.Right
+    || sideId === CubeSide.Top
+  );
+}
 
 interface ICubeSideProps {
   readonly size: number;

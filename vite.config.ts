@@ -14,6 +14,9 @@ export default defineConfig({
       outputDir: path.resolve(__dirname, "./dist"),
     }),
   ],
+  optimizeDeps: {
+    include: ["react-dom/client"],
+  },
   test: {
     browser: {
       name: "chromium",

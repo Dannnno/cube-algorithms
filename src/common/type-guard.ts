@@ -1,10 +1,14 @@
 /**
  * Type-guard assertion function
  * @param toAssert Value to be checked
+ * @param msg The message to display, if any
  */
-export function assert(toAssert: unknown): asserts toAssert {
-  if (toAssert) {
+export function assert(toAssert: unknown, msg?: string): asserts toAssert {
+  if (!!toAssert) {
     return;
+  }
+  if (msg) {
+    throw new Error(`Assertion of "${msg}" [${toAssert}] failed`);
   }
   throw new Error(`Assertion of "${toAssert}" failed`);
 }

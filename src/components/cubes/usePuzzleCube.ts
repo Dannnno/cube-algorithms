@@ -22,31 +22,31 @@ export const enum CubeActionType {
   /**
    * Rotate a face
    */
-  RotateFace,
+  RotateFace = "RotateFace",
   /**
    * Rotate an internal slice
    */
-  RotateSlice,
+  RotateSlice = "RotateSlice",
   /**
    * Reset the cube to it's default shape and layout
    */
-  ResetCube,
+  ResetCube = "ResetCube",
   /**
    * Rotate the cube so a new face is the "front" face (i.e. face #2)
    */
-  FocusCube,
+  FocusCube = "RefocusCubeOnFace",
   /**
    * Resize the cube. Also resets shape and layout
    */
-  ResizeCube,
+  ResizeCube = "ResizeCube",
   /**
    * Rotate the cube in a particular direction
    */
-  RotateCube,
+  RotateCube = "RotateWholeCube",
   /**
    * Rotate the cube in a particular direction, while facing one way
    */
-  RotateCubeFromFace,
+  RotateCubeFromFace = "RotateWholeCubeFromFace",
 }
 
 interface IActionBase<T extends CubeActionType = CubeActionType> {

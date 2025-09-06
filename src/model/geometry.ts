@@ -1,4 +1,4 @@
-import { assert, DeepReadonly, forceNever } from "@/common";
+import { assert, DeepReadonly, forceNever, isBoundedInteger } from "@/common";
 import {
   assertIsValidCube,
   assertIsValidCubeCell,
@@ -98,7 +98,6 @@ export function rotateCubeFace(
   );
 
   const result = _rotateCubeFace(newCube, cubeSize, sideId, numRotations);
-  assertIsValidCube(result, cubeSize);
   return result;
 }
 
@@ -191,7 +190,6 @@ function _rotateCubeFace(
       }
     }
   }
-  assertIsValidCube(cubeData, cubeSize);
 
   if (!skipSlice) {
     // Now handle the affected sides as well.
@@ -284,7 +282,6 @@ function _rotateCubeFace(
       1,
       rotCount * numTurns,
     );
-    assertIsValidCube(cubeData, cubeSize);
   }
   return cubeData;
 }
@@ -328,7 +325,16 @@ export function rotateCubeSliceFromFace(
   // future that won't need to re-invent those calculations for their own
   // rendering style (hopefully).
 
-  assert(numRotations >= 0);
+  assert(numRotations >= 0, "Must have a positive number of rotations");
+  assert(
+    isBoundedInteger(offsetStart, 1, cubeSize - 2),
+    `Offset must be in range [1, ${cubeSize - 2}]`,
+  );
+  assert(
+    isBoundedInteger(numSlices, 1, cubeSize - 1 - offsetStart),
+    `Number of slices must be in range [2, ${cubeSize - 1 - offsetStart}]`,
+  );
+
   const { isIndexInverted, sign } = _getDirectionSign(axis, faceRef, direction);
   const trueOffsetStart = isIndexInverted
     ? cubeSize - offsetStart - numSlices
@@ -427,7 +433,7 @@ function _getDirectionSign(
   const axisLookup = DIRECTION_SIGN_MAP[face];
   const directionLookup = axisLookup[axis];
   const sign = directionLookup?.[direction];
-  assert(sign !== undefined);
+  assert(sign, `Axis, face, and direction must make sense`);
   return sign;
 }
 
@@ -448,6 +454,14 @@ export function rotateCubeInternalSlice(
   numRotations: number,
 ): CubeData {
   const [newCube, cubeSize, numTurns] = _setupManipulation(cube, numRotations);
+  assert(
+    isBoundedInteger(offsetStart, 1, cubeSize - 2),
+    `Offset must be in range [1, ${cubeSize - 2}]`,
+  );
+  assert(
+    isBoundedInteger(numSlices, 1, cubeSize - 1 - offsetStart),
+    `Number of slices must be in range [1, ${cubeSize - 1 - offsetStart}]`,
+  );
 
   const result = _rotateCubeInternalSlice(
     newCube,
@@ -457,7 +471,6 @@ export function rotateCubeInternalSlice(
     numSlices,
     numTurns,
   );
-  assertIsValidCube(result, cubeSize);
   return result;
 }
 
@@ -893,7 +906,6 @@ function _setupManipulation(
 ): [CubeData, number, RotationAmount] {
   const size = numRotations === undefined ? getCubeSize(cube) : sizeOrRotations;
   const numTurns = numRotations ?? sizeOrRotations;
-  assertIsValidCube(cube, size);
   return [_copyCube(cube), size, _normalizeRotations(numTurns)];
 }
 

@@ -28,22 +28,22 @@ export type CubeAxis = "X" | "Y" | "Z";
  */
 export enum FaceRotationDirection {
   /** Rotate the face clockwise */
-  Clockwise,
+  Clockwise = "CW",
   /** Rotate the face counter-clockwise */
-  CounterClockwise,
+  CounterClockwise = "CCW",
 }
 /**
  * The direction to rotate an internal layer (slice)
  */
 export enum SliceDirection {
   /** Rotate the face upwards, i.e. towards row 0 */
-  Up,
+  Up = "Up",
   /** Rotate the face downwards, i.e. towards row N */
-  Down,
+  Down = "Down",
   /** Rotate the face to the left, i.e. towards col 0 */
-  Left,
+  Left = "Left",
   /** Rotate the face to the right, i.e. towards col N */
-  Right,
+  Right = "Right",
 }
 /**
  * The value at a given spot in the cube

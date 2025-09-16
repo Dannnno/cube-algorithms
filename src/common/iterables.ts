@@ -96,3 +96,41 @@ export function typeSafeSplit<
 >(value: TString, delim: TDelim): SplitString<TString, TDelim> {
   return value.split(delim) as SplitString<TString, TDelim>;
 }
+
+/**
+ * Get the cross product of two arrays
+ * @param left The left-side of the cross product
+ * @param right The right-side of the cross product
+ * @returns The cross product
+ */
+export function cross<TLeft, TRight>(
+  left: readonly TLeft[],
+  right: readonly TRight[],
+): [TLeft, TRight][] {
+  const results: [TLeft, TRight][] = [];
+  icross(left, right, (l, r) => results.push([l, r]));
+  return results;
+}
+
+/**
+ * Get the cross product of two arrays
+ * @param left The left-side of the cross product
+ * @param right The right-side of the cross product
+ * @param callback What to do with each combination
+ * @returns Whether we evaluated all combinations or not
+ */
+export function icross<TLeft, TRight>(
+  left: readonly TLeft[],
+  right: readonly TRight[],
+  callback: (l: TLeft, r: TRight) => LoopStatus | void,
+): LoopStatus {
+  for (const l of left) {
+    for (const r of right) {
+      if (callback(l, r) === LoopStatus.StopLooping) {
+        return LoopStatus.StopLooping;
+      }
+    }
+  }
+
+  return LoopStatus.KeepLooping;
+}

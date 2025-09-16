@@ -1,7 +1,13 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-
-import { forEach, LoopStatus, swapAt, zip } from "../../src/common/iterables";
+import {
+  LoopStatus,
+  cross,
+  forEach,
+  icross,
+  swapAt,
+  zip,
+} from "../../src/common";
 
 describe("forEach", () => {
   it("should iterate over an array in order, without stopping", () =>
@@ -164,12 +170,7 @@ describe("zip", () => {
         expect(timesCalled).toBe(left.length);
       }),
       {
-        examples: [
-          [
-            [1, 2],
-            [3, 4],
-          ],
-        ],
+        examples: [[[1, 2]], [[3, 4]]],
       },
     ));
   it("should be able to exit early", () =>
@@ -203,6 +204,103 @@ describe("zip", () => {
           [{ data: [1, 2, 3], ret: LoopStatus.StopLooping, stopAt: 0 }],
         ],
       },
+    ));
+});
+
+describe("cross", () => {
+  it.each(
+    // prettier-ignore
+    [
+      { l: [1, 2, 3], r: ["a", "b", "c"], e: [ [1, "a"], [1, "b"], [1, "c"], [2, "a"], [2, "b"], [2, "c"], [3, "a"], [3, "b"], [3, "c"] ] },
+      { l: [1, 2], r: ["a", "b", "c"], e: [ [1, "a"], [1, "b"], [1, "c"], [2, "a"], [2, "b"], [2, "c"] ] },
+      { l: [1, 2, 3], r: ["a", "b"], e: [ [1, "a"], [1, "b"], [2, "a"], [2, "b"], [3, "a"], [3, "b"] ] },
+    ],
+  )("should return all of the combinations", ({ l, r, e }) => {
+    const result = cross(l, r);
+    expect(result).toStrictEqual(e);
+  });
+
+  it("should return the right number of combinations", () =>
+    fc.assert(
+      fc.property(arrayBuilder, arrayBuilder, (l, r) => {
+        const result = cross(l, r);
+        expect(result.length).toBe(l.length * r.length);
+        for (const [left, right] of result) {
+          expect(l.includes(left)).toBeTruthy();
+          expect(r.includes(right)).toBeTruthy();
+        }
+      }),
+    ));
+});
+
+describe("icross", () => {
+  it.each(
+    // prettier-ignore
+    [
+      { l: [1, 2, 3], r: ["a", "b", "c"], e: [ [1, "a"], [1, "b"], [1, "c"], [2, "a"], [2, "b"], [2, "c"], [3, "a"], [3, "b"], [3, "c"] ] },
+      { l: [1, 2], r: ["a", "b", "c"], e: [ [1, "a"], [1, "b"], [1, "c"], [2, "a"], [2, "b"], [2, "c"] ] },
+      { l: [1, 2, 3], r: ["a", "b"], e: [ [1, "a"], [1, "b"], [2, "a"], [2, "b"], [3, "a"], [3, "b"] ] },
+    ],
+  )("should return all of the combinations", ({ l, r, e }) => {
+    let ix = 0;
+    const result = icross(l, r, (actL, actR) => {
+      const [expL, expR] = e[ix];
+      expect(actL, `Left[${ix}]`).toBe(expL);
+      expect(actR, `Right[${ix}]`).toBe(expR);
+      ++ix;
+    });
+    expect(result).toBe(LoopStatus.KeepLooping);
+  });
+
+  it("should return the right number of combinations", () =>
+    fc.assert(
+      fc.property(arrayBuilder, arrayBuilder, (l, r) => {
+        let timesCalled = 0;
+        expect(
+          icross(l, r, (left, right) => {
+            expect(l.includes(left)).toBeTruthy();
+            expect(r.includes(right)).toBeTruthy();
+            ++timesCalled;
+          }),
+        ).toBe(LoopStatus.KeepLooping);
+        expect(timesCalled).toBe(l.length * r.length);
+      }),
+    ));
+  it("should be able to exit early", () =>
+    fc.assert(
+      fc.property(optionBuilder, ({ data, ret, stopAt }) => {
+        const left = data;
+        const right = Array.from(data).reverse();
+
+        const {
+          actualStopIndex,
+          expectedIterationCount,
+          expectedReturnValue,
+          expectedToStop,
+        } = getSafeEarlyStopProps(
+          Array.from({ length: data.length ** 2 }),
+          stopAt,
+          ret,
+        );
+
+        let timesCalled = 0;
+        let ix = 0;
+        expect(
+          icross(left, right, (l, r) => {
+            expect(left.includes(l), `Left[${timesCalled}]`).toBeTruthy();
+            expect(right.includes(r), `Right[${timesCalled}]`).toBeTruthy();
+            ++timesCalled;
+            if (ix === actualStopIndex) {
+              return ret;
+            }
+            ++ix;
+          }),
+          "Return Value",
+        ).toBe(expectedReturnValue);
+        expect(timesCalled, "Times Called").toBe(expectedIterationCount);
+      }),
+      // Counterexample: [{"data":[null,null],"ret":0}]
+      { seed: 1317239234, path: "39:1:0:0:1:2", endOnFailure: true },
     ));
 });
 

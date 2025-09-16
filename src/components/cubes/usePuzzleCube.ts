@@ -61,14 +61,14 @@ interface ICubeRotateFaceAction extends IActionBase<CubeActionType.RotateFace> {
   readonly rotationCount: number;
 }
 
-interface ICubeRotateSliceAction
+export interface ICubeRotateSliceAction
   extends IActionBase<CubeActionType.RotateSlice> {
   /** Which axis to rotate the internal slices on */
   readonly axis: CubeAxis;
   /** How far into the cube to slice it */
-  readonly offsetIndex: number;
+  readonly offsetIndex?: number;
   /** How many rows to slice at a time */
-  readonly offsetSize: number;
+  readonly offsetSize?: number;
   /** How many clockwise rotations to do */
   readonly rotationCount: number;
   /** The direction to rotate in */
@@ -144,23 +144,30 @@ const puzzleReducer: React.Reducer<DeepReadonly<CubeData>, CubeActions> = (
   state: DeepReadonly<CubeData>,
   action: CubeActions,
 ) => {
+  const cubeSize = getCubeSize(state);
   switch (action.type) {
     case CubeActionType.RotateFace:
       return rotateCubeFace(state, action.sideId, action.rotationCount);
-    case CubeActionType.RotateSlice:
+    case CubeActionType.RotateSlice: {
+      const [offsetStart, offsetSize] = _normalizeSliceOffsets(
+        cubeSize,
+        action.offsetIndex,
+        action.offsetSize,
+      );
       return rotateCubeSliceFromFace(
         state,
         action.refSide,
         action.axis,
-        action.offsetIndex,
-        action.offsetSize,
+        offsetStart,
+        offsetSize,
         action.direction,
         action.rotationCount,
       );
+    }
     case CubeActionType.ResizeCube:
       return buildCubeOfSize(action.newSize);
     case CubeActionType.ResetCube:
-      return buildCubeOfSize(getCubeSize(state));
+      return buildCubeOfSize(cubeSize);
     case CubeActionType.FocusCube:
       return refocusCube(state, action.focusFace);
     case CubeActionType.RotateCube:
@@ -176,6 +183,20 @@ const puzzleReducer: React.Reducer<DeepReadonly<CubeData>, CubeActions> = (
       forceNever(action);
   }
 };
+
+function _normalizeSliceOffsets(
+  cubeSize: number,
+  offsetStart: number | undefined,
+  offsetSize: number | undefined,
+): [number, number] {
+  if (offsetStart === undefined) {
+    return [1, cubeSize - 2];
+  } else if (offsetSize === undefined) {
+    return [offsetStart, 1];
+  } else {
+    return [offsetStart, offsetSize];
+  }
+}
 
 /**
  * Can be used to get a deep dependency on object changes

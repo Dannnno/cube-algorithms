@@ -1,6 +1,11 @@
-import { CubeActions, CubeActionType } from "@/components/cubes";
+import { forceNever } from "@/common";
+import {
+  CubeActions,
+  CubeActionType,
+  ICubeRotateSliceAction,
+} from "@/components/cubes";
 import * as ohm from "ohm-js";
-import { CubeSide } from "../cube";
+import { CubeSide, SliceDirection } from "../cube";
 import { RotationAmount } from "../geometry";
 import {
   _assertNodeIsStronglyTyped,
@@ -30,6 +35,9 @@ export function _getActionSemantics(parser: ohm.Grammar): _CubeSemantics {
     move_singleRotationAC,
     move_doubleRotation,
     move_singleRotationCW,
+    slice_middle,
+    slice_equatorial,
+    slice_standing,
     face_front,
     face_up,
     face_right,
@@ -55,35 +63,67 @@ const expression: _FrameworkVisitorCallback<ExpressionNode> = (
 };
 
 const move_singleRotationAC: _FrameworkVisitorCallback<MoveNode> = (
-  face: FaceNode,
+  node: SomeMoveNode,
   _acInd: _Terminal,
-): CubeActions => {
-  _assertNodeIsStronglyTyped(face, "face");
-  return {
-    type: CubeActionType.RotateFace,
-    sideId: face.execute(),
-    rotationCount: RotationAmount.CounterClockwise,
-  };
-};
+): CubeActions => doMove(node, RotationAmount.CounterClockwise);
 const move_doubleRotation: _FrameworkVisitorCallback<MoveNode> = (
-  face: FaceNode,
+  node: SomeMoveNode,
   _dblInd: _Terminal,
-): CubeActions => {
-  _assertNodeIsStronglyTyped(face, "face");
+): CubeActions => doMove(node, RotationAmount.Halfway);
+const move_singleRotationCW: _FrameworkVisitorCallback<MoveNode> = (
+  node: SomeMoveNode,
+): CubeActions => doMove(node, RotationAmount.Clockwise);
+function doMove(
+  node: SomeMoveNode,
+  rotationCount: RotationAmount,
+): CubeActions {
+  switch (node.ctorName) {
+    case "slice":
+      _assertNodeIsStronglyTyped(node, "slice");
+      return {
+        ...node.execute(),
+        rotationCount,
+      };
+    case "face":
+      _assertNodeIsStronglyTyped(node, "face");
+      return {
+        type: CubeActionType.RotateFace,
+        sideId: node.execute(),
+        rotationCount,
+      };
+    default:
+      forceNever(node);
+  }
+}
+
+const slice_middle: _FrameworkVisitorCallback<SliceNode> = (
+  _slice: _Terminal,
+): Omit<ICubeRotateSliceAction, "rotationCount"> => {
   return {
-    type: CubeActionType.RotateFace,
-    sideId: face.execute(),
-    rotationCount: RotationAmount.Halfway,
+    type: CubeActionType.RotateSlice,
+    axis: "Y",
+    direction: SliceDirection.Down,
+    refSide: CubeSide.Front,
   };
 };
-const move_singleRotationCW: _FrameworkVisitorCallback<MoveNode> = (
-  face: FaceNode,
-): CubeActions => {
-  _assertNodeIsStronglyTyped(face, "face");
+const slice_equatorial: _FrameworkVisitorCallback<SliceNode> = (
+  _slice: _Terminal,
+): Omit<ICubeRotateSliceAction, "rotationCount"> => {
   return {
-    type: CubeActionType.RotateFace,
-    sideId: face.execute(),
-    rotationCount: RotationAmount.Clockwise,
+    type: CubeActionType.RotateSlice,
+    axis: "X",
+    direction: SliceDirection.Right,
+    refSide: CubeSide.Left,
+  };
+};
+const slice_standing: _FrameworkVisitorCallback<SliceNode> = (
+  _slice: _Terminal,
+): Omit<ICubeRotateSliceAction, "rotationCount"> => {
+  return {
+    type: CubeActionType.RotateSlice,
+    axis: "Z",
+    direction: SliceDirection.Up,
+    refSide: CubeSide.Left,
   };
 };
 
@@ -124,6 +164,16 @@ type MoveNode = _SemanticParseNode<
   "move",
   "execute",
   CubeActions,
-  [FaceNode, _Terminal] | [FaceNode]
+  [SomeMoveNode, _Terminal] | [SomeMoveNode]
 >;
+
+type SomeMoveNode = SliceNode | FaceNode;
+
+type SliceNode = _SemanticParseNode<
+  "slice",
+  "execute",
+  Omit<ICubeRotateSliceAction, "rotationCount">,
+  [_Terminal]
+>;
+
 type FaceNode = _SemanticParseNode<"face", "execute", CubeSide, [_Terminal]>;

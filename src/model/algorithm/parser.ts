@@ -11,6 +11,7 @@ export function _getAlgorithmParser(): ohm.Grammar {
       expression = allMoves (space+ allMoves)* space*
 
       allMoves = move<face>
+               | move<slice>
                
       move<type> = type antiClockwise -- singleRotationAC
                  | type "2"           -- doubleRotation
@@ -22,6 +23,10 @@ export function _getAlgorithmParser(): ohm.Grammar {
            | "B" -- back
            | "L" -- left
            | "D" -- down
+
+      slice = "M" -- middle
+            | "E" -- equatorial
+            | "S" -- standing
 
       antiClockwise = "'"
     }

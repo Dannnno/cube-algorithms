@@ -1,5 +1,5 @@
-import { DeepReadonly } from "@/common";
-import { CubeActions } from "@/components/cubes";
+import { DeepReadonly, forceNever } from "@/common";
+import { CubeActionType, CubeActions } from "@/components/cubes";
 import { _getActionSemantics } from "./actions";
 import { _getAlgorithmParser } from "./parser";
 
@@ -35,6 +35,8 @@ export interface IInvalidStep {
 export enum InvalidStepReason {
   /** There is a syntax error in the step */
   SyntaxError,
+  /** Slices are not allowed for this cube size */
+  SlicesNotAllowed,
 }
 
 /**
@@ -119,11 +121,37 @@ function _validateActions(
 }
 
 function _validateStep(
-  _action: CubeActions,
-  _cubeSize: number,
+  action: CubeActions,
+  cubeSize: number,
 ): IValidStepResult | IInvalidStepResult {
-  // Right now there are no reasons this would be invalid as long as we've passed parsing
-  // This will change when we get slices and deep turns
+  switch (action.type) {
+    case CubeActionType.RotateFace:
+    case CubeActionType.ResetCube:
+    case CubeActionType.FocusCube:
+    case CubeActionType.ResizeCube:
+    case CubeActionType.RotateCube:
+    case CubeActionType.RotateCubeFromFace:
+      return { isInvalid: false };
+    case CubeActionType.RotateSlice:
+      return _checkSliceIndices(
+        cubeSize,
+        action.offsetIndex,
+        action.offsetSize,
+      );
+    default:
+      forceNever(action);
+  }
+}
+
+function _checkSliceIndices(
+  cubeSize: number,
+  _offsetIndex: number | undefined,
+  _offsetSize: number | undefined,
+): IValidStepResult | IInvalidStepResult {
+  if (cubeSize === 2) {
+    return { isInvalid: true, reason: InvalidStepReason.SlicesNotAllowed };
+  }
+
   return { isInvalid: false };
 }
 

@@ -2,8 +2,7 @@ import fc from "fast-check";
 import { expect } from "vitest";
 import { Counter, DeepReadonly, forceNever } from "../../src/common";
 import { CubeActionType, CubeActions } from "../../src/components/cubes";
-import { _getActionSemantics } from "../../src/model/algorithm/actions";
-import { _getAlgorithmParser } from "../../src/model/algorithm/parser";
+import { interpretAlgorithm } from "../../src/model/algorithm";
 import {
   CubeAxis,
   CubeData,
@@ -664,14 +663,18 @@ export function fcCompareActionWithActual(
 
   const actualToRun: CubeActions[] = [];
   if (typeof actualActions === "string") {
-    const parser = _getAlgorithmParser();
-    const semantics = _getActionSemantics(parser);
-    const match = parser.match(actualActions);
-    const adapter = semantics(match);
-    actualToRun.push(...adapter.execute());
+    const { isValid, invalidSteps, steps } = interpretAlgorithm(
+      actualActions,
+      cubeSize,
+    );
+    expect(isValid).toBeTruthy();
+    expect(invalidSteps).toStrictEqual([]);
+    actualToRun.push(...steps);
   } else {
     actualToRun.push(...actualActions);
   }
+  checkAllActionInvariants(actualToRun);
+  checkAllActionInvariants(expectedActions);
 
   const actualCube = runActionsOnCube(
     Array.from(baseCube, (v: CubeSideData) => Array.from(v)),
@@ -703,23 +706,30 @@ export function runActionsOnCube(
 }
 
 function _runOneAction(cube: CubeData, action: CubeActions): CubeData {
+  const cubeSize = getCubeSize(cube);
   switch (action.type) {
     case CubeActionType.RotateFace:
       return rotateCubeFace(cube, action.sideId, action.rotationCount);
-    case CubeActionType.RotateSlice:
+    case CubeActionType.RotateSlice: {
+      const [offsetStart, offsetSize] = _normalizeSliceOffsets(
+        cubeSize,
+        action.offsetIndex,
+        action.offsetSize,
+      );
       return rotateCubeSliceFromFace(
         cube,
         action.refSide,
         action.axis,
-        action.offsetIndex,
-        action.offsetSize,
+        offsetStart,
+        offsetSize,
         action.direction,
         action.rotationCount,
       );
+    }
     case CubeActionType.ResizeCube:
       return getTestCube(action.newSize);
     case CubeActionType.ResetCube:
-      return getTestCube(getCubeSize(cube));
+      return getTestCube(cubeSize);
     case CubeActionType.FocusCube:
       return refocusCube(cube, action.focusFace);
     case CubeActionType.RotateCube:
@@ -733,5 +743,108 @@ function _runOneAction(cube: CubeData, action: CubeActions): CubeData {
       );
     default:
       forceNever(action);
+  }
+}
+
+function _normalizeSliceOffsets(
+  cubeSize: number,
+  offsetStart: number | undefined,
+  offsetSize: number | undefined,
+): [number, number] {
+  if (offsetStart === undefined) {
+    return [1, cubeSize - 2];
+  } else if (offsetSize === undefined) {
+    return [offsetStart, 1];
+  } else {
+    return [offsetStart, offsetSize];
+  }
+}
+
+export function checkAllActionInvariants(
+  actions: readonly CubeActions[],
+): void {
+  actions.forEach(checkActionInvariants);
+}
+
+export function checkActionInvariants(action: CubeActions): void {
+  switch (action.type) {
+    case CubeActionType.RotateFace:
+      expectSideId(action.sideId, `RotateFace`);
+      break;
+    case CubeActionType.RotateSlice:
+      expectAxis(action.axis, `RotateSlice`);
+      expectSideId(action.refSide, `RotateSlice`);
+      expectOffsets(action.offsetIndex, action.offsetSize, `RotateSlice`);
+      break;
+    case CubeActionType.ResetCube:
+      break;
+    case CubeActionType.FocusCube:
+      expectSideId(action.focusFace, `FocusCube`);
+      break;
+    case CubeActionType.ResizeCube:
+      break;
+    case CubeActionType.RotateCube:
+      expectAxis(action.axis, `RotateCube`);
+      break;
+    case CubeActionType.RotateCubeFromFace:
+      expectSideId(action.faceRef, `RotateCubeFromFace`);
+      expectDirection(action.direction, `RotateCubeFromFace`);
+      break;
+    default:
+      forceNever(action);
+  }
+}
+
+export function expectSideId(sideId: CubeSide, label: string): void {
+  expect(sideId, `${label}.sideId`).toBeOneOf([
+    CubeSide.Front,
+    CubeSide.Top,
+    CubeSide.Right,
+    CubeSide.Back,
+    CubeSide.Left,
+    CubeSide.Bottom,
+  ]);
+}
+
+export function expectAxis(axis: CubeAxis, label: string): void {
+  expect(axis, `${label}.axis`).toBeOneOf(["X", "Y", "Z"]);
+}
+
+export function expectDirection(
+  direction: SliceDirection,
+  label: string,
+): void {
+  expect(direction, `${label}.direction`).toBeOneOf([
+    SliceDirection.Up,
+    SliceDirection.Down,
+    SliceDirection.Left,
+    SliceDirection.Right,
+  ]);
+}
+
+export function expectOffsets(
+  start: number | undefined,
+  size: number | undefined,
+  label: string,
+  cubeSize?: number,
+): void {
+  if (start === undefined) {
+    expect(size, `${label}.offsetSize`).toBeUndefined();
+  } else {
+    expect(start, `${label}.offsetStart`).toBeGreaterThanOrEqual(1);
+    if (cubeSize) {
+      expect(start, `${label}.offsetStart`).toBeLessThanOrEqual(cubeSize - 2);
+    } else {
+      expect(start, `${label}.offsetStart`).toBeLessThanOrEqual(8);
+    }
+
+    if (size !== undefined) {
+      expect(size, `${label}.offsetSize`).toBeGreaterThanOrEqual(1);
+      if (cubeSize) {
+        expect(size, `${label}.offsetSize`).toBeLessThanOrEqual(cubeSize - 2);
+      } else {
+        expect(size, `${label}.offsetSize`).toBeLessThanOrEqual(7);
+      }
+    }
   }
 }

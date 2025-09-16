@@ -7,9 +7,9 @@ import { fcAlgorithmText } from "./fcAlgorithm";
 describe("_getAlgorithmParser", () => {
   it("should be able to parse valid generated expressions", () =>
     fc.assert(
-      fc.property(fcAlgorithmText, alg => {
+      fc.property(fcAlgorithmText, ({ algorithm }) => {
         const parser = _getAlgorithmParser();
-        const match = parser.match(alg);
+        const match = parser.match(algorithm);
         expect(match.succeeded()).toBeTruthy();
       }),
     ));
@@ -20,6 +20,18 @@ describe("_getAlgorithmParser", () => {
 
     it.each(cross(faces, rotations))("Should parse $0 $1", (face, rot) => {
       const step = `${face}${rot}`;
+      const parser = _getAlgorithmParser();
+      const match = parser.match(step);
+      expect(match.succeeded(), step).toBeTruthy();
+    });
+  });
+
+  describe("Slice Rotations (Exhaustive)", () => {
+    const slices = ["M", "E", "S"];
+    const rotations = ["", "2", "'"];
+
+    it.each(cross(slices, rotations))("Should parse $0 $1", (slice, rot) => {
+      const step = `${slice}${rot}`;
       const parser = _getAlgorithmParser();
       const match = parser.match(step);
       expect(match.succeeded(), step).toBeTruthy();

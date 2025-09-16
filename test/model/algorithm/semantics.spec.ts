@@ -9,7 +9,7 @@ import {
   _Terminal,
   _assertNodeIsStronglyTyped,
 } from "../../../src/model/algorithm/semantics";
-import { fcAlgCubeFace, fcAlgRotation, fcAlgSplitSpaces } from "./fcAlgorithm";
+import { fcAlgSplitSpaces } from "./fcAlgorithm";
 
 describe("Semantics", () => {
   const cubeParser = ohm.grammar(cubeGrammar);
@@ -76,9 +76,16 @@ describe("Semantics", () => {
   it("should pass PBT", () =>
     fc.assert(
       fc.property(
-        fc.array(fc.tuple(fcAlgCubeFace, fcAlgRotation, fcAlgSplitSpaces), {
-          minLength: 1,
-        }),
+        fc.array(
+          fc.tuple(
+            fc.constantFrom("F", "L", "R", "B", "U", "D"),
+            fc.constantFrom("", "2", "'"),
+            fcAlgSplitSpaces,
+          ),
+          {
+            minLength: 1,
+          },
+        ),
         steps => {
           const toParse = steps
             .map(([face, rotation, spaces]) => `${face}${rotation}${spaces}`)

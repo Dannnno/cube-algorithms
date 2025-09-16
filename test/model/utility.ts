@@ -1,7 +1,9 @@
 import fc from "fast-check";
 import { expect } from "vitest";
 import { Counter, DeepReadonly, forceNever } from "../../src/common";
-import { CubeActionType } from "../../src/components/cubes";
+import { CubeActionType, CubeActions } from "../../src/components/cubes";
+import { _getActionSemantics } from "../../src/model/algorithm/actions";
+import { _getAlgorithmParser } from "../../src/model/algorithm/parser";
 import {
   CubeAxis,
   CubeData,
@@ -60,10 +62,7 @@ function checkCubeSide(
   expect(actualSide, `Full Side ${side}`).toStrictEqual(expectedSide);
 }
 
-export function getTestCube(
-  size: number,
-  mutate: boolean = false,
-): DeepReadonly<CubeData> {
+export function getTestCube(size: number, mutate: boolean = false): CubeData {
   const length = size * size;
   const cube = [
     Array.from({ length }, _ => 1),
@@ -637,3 +636,102 @@ export const CubeCommands = [
   fcRotateWholeCubeCommand,
   fcRotateWholeCubeFromFaceCommand,
 ];
+
+/**
+ * Check that two sequences of actions are equivalent
+ * @param cubeSize The size of cube being worked with
+ * @param commands The commands to randomize initial cube state
+ * @param actualActions The actual actions to perform (may require parsing)
+ * @param expectedActions The actions we expect to be performed
+ * @param check Callback if we need to do anything extra on the cubes
+ */
+export function fcCompareActionWithActual(
+  cubeSize: number,
+  commands: Iterable<fc.Command<PuzzleCubeModel, CubeData>>,
+  actualActions: string | readonly CubeActions[],
+  expectedActions: readonly CubeActions[],
+  check?: (
+    actualCube: DeepReadonly<CubeData>,
+    expectedCube: DeepReadonly<CubeData>,
+  ) => void,
+): void {
+  const baseCube = getTestCube(cubeSize);
+  const s = () => ({
+    model: { cubeSize, commandList: [] },
+    real: baseCube,
+  });
+  fc.modelRun(s, commands);
+
+  const actualToRun: CubeActions[] = [];
+  if (typeof actualActions === "string") {
+    const parser = _getAlgorithmParser();
+    const semantics = _getActionSemantics(parser);
+    const match = parser.match(actualActions);
+    const adapter = semantics(match);
+    actualToRun.push(...adapter.execute());
+  } else {
+    actualToRun.push(...actualActions);
+  }
+
+  const actualCube = runActionsOnCube(
+    Array.from(baseCube, (v: CubeSideData) => Array.from(v)),
+    actualToRun,
+  );
+  const expectedCube = runActionsOnCube(
+    Array.from(baseCube, (v: CubeSideData) => Array.from(v)),
+    expectedActions,
+  );
+
+  checkCube(actualCube, expectedCube);
+  check?.(actualCube, expectedCube);
+}
+
+/**
+ * Run a series of actions on a cube
+ * @param cube The starting cube state
+ * @param actions The actions to apply to the cube
+ * @returns The modified cube state
+ */
+export function runActionsOnCube(
+  cube: CubeData,
+  actions: readonly CubeActions[],
+): CubeData {
+  for (const action of actions) {
+    cube = _runOneAction(cube, action);
+  }
+  return cube;
+}
+
+function _runOneAction(cube: CubeData, action: CubeActions): CubeData {
+  switch (action.type) {
+    case CubeActionType.RotateFace:
+      return rotateCubeFace(cube, action.sideId, action.rotationCount);
+    case CubeActionType.RotateSlice:
+      return rotateCubeSliceFromFace(
+        cube,
+        action.refSide,
+        action.axis,
+        action.offsetIndex,
+        action.offsetSize,
+        action.direction,
+        action.rotationCount,
+      );
+    case CubeActionType.ResizeCube:
+      return getTestCube(action.newSize);
+    case CubeActionType.ResetCube:
+      return getTestCube(getCubeSize(cube));
+    case CubeActionType.FocusCube:
+      return refocusCube(cube, action.focusFace);
+    case CubeActionType.RotateCube:
+      return rotateCube(cube, action.axis, action.rotationCount);
+    case CubeActionType.RotateCubeFromFace:
+      return rotateCubeFromFace(
+        cube,
+        action.faceRef,
+        action.direction,
+        action.rotationCount,
+      );
+    default:
+      forceNever(action);
+  }
+}

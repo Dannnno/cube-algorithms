@@ -37,4 +37,16 @@ describe("_getAlgorithmParser", () => {
       expect(match.succeeded(), step).toBeTruthy();
     });
   });
+
+  describe("Cube Rotations (Exhaustive)", () => {
+    const axes = ["X", "Y", "Z"];
+    const rotations = ["", "2", "'"];
+
+    it.each(cross(axes, rotations))("Should parse $0 $1", (axis, rot) => {
+      const step = `${axis}${rot}`;
+      const parser = _getAlgorithmParser();
+      const match = parser.match(step);
+      expect(match.succeeded(), step).toBeTruthy();
+    });
+  });
 });

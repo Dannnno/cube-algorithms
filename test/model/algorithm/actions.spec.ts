@@ -158,4 +158,55 @@ describe("_getActionSemantics", () => {
         ),
       ));
   });
+
+  describe("Cube Rotations (Exhaustive)", () => {
+    const axes = ["Y", "X", "Z"]; // NOTE THE DIFFERENCE; algorithm terminology is different from what I made when I started developing this, and its too much work to change it now
+    const cubeRot = [
+      RotationAmount.Clockwise,
+      RotationAmount.Halfway,
+      RotationAmount.CounterClockwise,
+    ];
+    const cubeAxes = ["X", "Y", "Z"];
+    const rotations = ["", "2", "'"];
+
+    const tests = cross(cubeAxes, rotations);
+    const expected = cross(axes, cubeRot);
+
+    const cases = tests.map(([axis, rot], ix) => ({
+      step: `${axis}${rot}`,
+      action: expected[ix],
+    }));
+
+    it.each(cases)("Should get an action for $step", ({ step, action }) => {
+      const parser = _getAlgorithmParser();
+      const semantics = _getActionSemantics(parser);
+      const match = parser.match(step);
+      const adapter = semantics(match);
+      const actualActions = adapter.execute();
+      expect(actualActions.length).toBe(1);
+      expect(actualActions[0].type).toBe(CubeActionType.RotateCube);
+      expect(actualActions[0].axis).toBe(action[0]);
+      expect(actualActions[0].rotationCount).toBe(action[1]);
+      checkAllActionInvariants(actualActions);
+    });
+
+    it("Should be equivalent to an action", () =>
+      fc.assert(
+        fc.property(
+          fc.nat({ max: cases.length - 1 }),
+          fcAlgCubeSize,
+          fc.commands(CubeCommands, { size: "xsmall" }),
+          (caseIx, cubeSize, cmds) => {
+            const { step, action } = cases[caseIx];
+            fcCompareActionWithActual(cubeSize, cmds, step, [
+              {
+                type: CubeActionType.RotateCube,
+                axis: action[0],
+                rotationCount: action[1],
+              },
+            ]);
+          },
+        ),
+      ));
+  });
 });

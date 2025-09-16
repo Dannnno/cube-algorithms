@@ -12,6 +12,7 @@ export function _getAlgorithmParser(): ohm.Grammar {
 
       allMoves = move<face>
                | move<slice>
+               | move<wholeCube>
                
       move<type> = type antiClockwise -- singleRotationAC
                  | type "2"           -- doubleRotation
@@ -27,6 +28,10 @@ export function _getAlgorithmParser(): ohm.Grammar {
       slice = "M" -- middle
             | "E" -- equatorial
             | "S" -- standing
+
+      wholeCube = "X" -- cubeOnR
+                | "Y" -- cubeOnU
+                | "Z" -- cubeOnF
 
       antiClockwise = "'"
     }

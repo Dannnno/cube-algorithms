@@ -7,9 +7,12 @@ export const fcAlgCubeFace = fc
 export const fcAlgCubeSlice = fc
   .constantFrom("M", "E", "S")
   .map(step => ({ step, minSize: 3 }));
+export const fcAlgWholeCube = fc
+  .constantFrom("X", "Y", "Z")
+  .map(step => ({ step, minSize: 2 }));
 export const fcAlgRotation = fc.constantFrom("", "2", "'");
 export const fcAlgMove = fc
-  .tuple(fc.oneof(fcAlgCubeFace, fcAlgCubeSlice), fcAlgRotation)
+  .tuple(fc.oneof(fcAlgCubeFace, fcAlgCubeSlice, fcAlgWholeCube), fcAlgRotation)
   .map(([{ step, minSize }, rotation]) => ({
     step: `${step}${rotation}`,
     minSize,

@@ -5,7 +5,7 @@ import {
   ICubeRotateSliceAction,
 } from "@/components/cubes";
 import * as ohm from "ohm-js";
-import { CubeSide, SliceDirection } from "../cube";
+import { CubeAxis, CubeSide, SliceDirection } from "../cube";
 import { RotationAmount } from "../geometry";
 import {
   _assertNodeIsStronglyTyped,
@@ -35,6 +35,9 @@ export function _getActionSemantics(parser: ohm.Grammar): _CubeSemantics {
     move_singleRotationAC,
     move_doubleRotation,
     move_singleRotationCW,
+    wholeCube_cubeOnR,
+    wholeCube_cubeOnU,
+    wholeCube_cubeOnF,
     slice_middle,
     slice_equatorial,
     slice_standing,
@@ -91,10 +94,27 @@ function doMove(
         sideId: node.execute(),
         rotationCount,
       };
+    case "wholeCube":
+      _assertNodeIsStronglyTyped(node, "wholeCube");
+      return {
+        type: CubeActionType.RotateCube,
+        axis: node.execute(),
+        rotationCount,
+      };
     default:
       forceNever(node);
   }
 }
+
+const wholeCube_cubeOnR: _FrameworkVisitorCallback<WholeCubeNode> = (
+  _axis: _Terminal,
+): CubeAxis => "Y";
+const wholeCube_cubeOnU: _FrameworkVisitorCallback<WholeCubeNode> = (
+  _axis: _Terminal,
+): CubeAxis => "X";
+const wholeCube_cubeOnF: _FrameworkVisitorCallback<WholeCubeNode> = (
+  _axis: _Terminal,
+): CubeAxis => "Z";
 
 const slice_middle: _FrameworkVisitorCallback<SliceNode> = (
   _slice: _Terminal,
@@ -167,7 +187,14 @@ type MoveNode = _SemanticParseNode<
   [SomeMoveNode, _Terminal] | [SomeMoveNode]
 >;
 
-type SomeMoveNode = SliceNode | FaceNode;
+type SomeMoveNode = SliceNode | FaceNode | WholeCubeNode;
+
+type WholeCubeNode = _SemanticParseNode<
+  "wholeCube",
+  "execute",
+  CubeAxis,
+  [_Terminal]
+>;
 
 type SliceNode = _SemanticParseNode<
   "slice",

@@ -7,7 +7,7 @@ import {
   interpretAlgorithm,
   validateActions,
 } from "../../../src/model/algorithm";
-import { CubeSide } from "../../../src/model/cube";
+import { CubeSide, SliceDirection } from "../../../src/model/cube";
 import { checkAllActionInvariants } from "../utility";
 import { fcAlgCubeSize, fcAlgorithmText } from "./fcAlgorithm";
 
@@ -16,6 +16,7 @@ describe("interpretAlgorithm", () => {
     ["R L' U2 D F2 B'", true, 2],
     ["RLU", false, 2],
     ["M E2 S'", true, 3],
+    ["X Y' Z2", true, 2],
   ] as const;
   it.each(algorithms)("should parse $0", (alg, expIsValid, minSize) =>
     fc.assert(
@@ -127,11 +128,26 @@ describe("interpretAlgorithm", () => {
     ));
 });
 
-describe.skip("validateActions", () => {
+describe("validateActions", () => {
   // prettier-ignore
   const testCases: [CubeActions[], number, boolean][] = [
     [
-        [{type: CubeActionType.RotateFace, sideId: CubeSide.Left, rotationCount: 1}], 
+        [{ type: CubeActionType.RotateFace, sideId: CubeSide.Left, rotationCount: 1 }], 
+        3, 
+        true
+    ],
+    [
+        [{ type: CubeActionType.RotateSlice, axis: "X", refSide: CubeSide.Left, rotationCount: 1, direction: SliceDirection.Left }], 
+        2, 
+        false
+    ],
+    [
+        [{ type: CubeActionType.RotateSlice, axis: "Z", refSide: CubeSide.Left, rotationCount: 1, direction: SliceDirection.Up }], 
+        3, 
+        true
+    ],
+    [
+        [{ type: CubeActionType.RotateCube, axis: "Y", rotationCount: 1 }], 
         3, 
         true
     ],
@@ -152,7 +168,6 @@ describe.skip("validateActions", () => {
       } else {
         expect(invalidSteps.length, "invalidSteps").toBeGreaterThan(0);
       }
-      expect(true).toBeFalsy(); // SLICES
     },
   );
 });

@@ -10,13 +10,32 @@ export function _getAlgorithmParser(): ohm.Grammar {
     Algorithm {
       expression = allMoves (space+ allMoves)* space*
 
-      allMoves = move<face>
+      allMoves = move<deepTurnAny>
+               | move<face>
                | move<slice>
                | move<wholeCube>
                
       move<type> = type antiClockwise -- singleRotationAC
                  | type "2"           -- doubleRotation
                  | type               -- singleRotationCW
+
+      deepTurnAny = deepTurnPrefix
+                  | deepTurnJapanese
+                  | deepTurnSub
+                  | deepTurnFace
+
+      deepTurnPrefix = prefix deepTurnJapanese
+
+      deepTurnJapanese = face "w"
+
+      deepTurnSub = face subscript
+
+      deepTurnFace = "f" -- front
+                   | "u" -- up
+                   | "r" -- right
+                   | "b" -- back
+                   | "l" -- left
+                   | "d" -- down
 
       face = "F" -- front
            | "U" -- up
@@ -29,11 +48,16 @@ export function _getAlgorithmParser(): ohm.Grammar {
             | "E" -- equatorial
             | "S" -- standing
 
-      wholeCube = "X" -- cubeOnR
-                | "Y" -- cubeOnU
-                | "Z" -- cubeOnF
+      wholeCube = caseInsensitive<"X"> -- cubeOnR
+                | caseInsensitive<"Y"> -- cubeOnU
+                | caseInsensitive<"Z"> -- cubeOnF
 
       antiClockwise = "'"
+
+      subscript = "_" "2".."5"           -- latex
+                | "\u{2082}".."\u{2085}" -- unicode
+
+      prefix = "3".."5"                
     }
   `);
 }

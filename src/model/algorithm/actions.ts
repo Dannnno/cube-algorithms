@@ -1,19 +1,20 @@
-import { forceNever } from "@/common";
+import { assert, forceNever } from "@/common";
 import {
-  CubeActions,
   CubeActionType,
+  CubeActions,
+  ICubeRotateFaceDeepAction,
   ICubeRotateSliceAction,
 } from "@/components/cubes";
 import * as ohm from "ohm-js";
 import { CubeAxis, CubeSide, SliceDirection } from "../cube";
 import { RotationAmount } from "../geometry";
 import {
-  _assertNodeIsStronglyTyped,
   _FrameworkVisitorCallback,
   _Iter,
   _SemanticExecutor,
   _SemanticParseNode,
   _Terminal,
+  _assertNodeIsStronglyTyped,
 } from "./semantics";
 
 /**
@@ -35,18 +36,31 @@ export function _getActionSemantics(parser: ohm.Grammar): _CubeSemantics {
     move_singleRotationAC,
     move_doubleRotation,
     move_singleRotationCW,
-    wholeCube_cubeOnR,
-    wholeCube_cubeOnU,
-    wholeCube_cubeOnF,
-    slice_middle,
-    slice_equatorial,
-    slice_standing,
+    deepTurnAny,
+    deepTurnPrefix,
+    deepTurnJapanese,
+    deepTurnSub,
+    deepTurnFace_front,
+    deepTurnFace_up,
+    deepTurnFace_right,
+    deepTurnFace_back,
+    deepTurnFace_left,
+    deepTurnFace_down,
     face_front,
     face_up,
     face_right,
     face_back,
     face_left,
     face_down,
+    slice_middle,
+    slice_equatorial,
+    slice_standing,
+    wholeCube_cubeOnR,
+    wholeCube_cubeOnU,
+    wholeCube_cubeOnF,
+    subscript_latex,
+    subscript_unicode,
+    prefix,
   } as unknown as ohm.ActionDict<unknown>) as unknown as _CubeSemantics;
 }
 
@@ -83,10 +97,7 @@ function doMove(
   switch (node.ctorName) {
     case "slice":
       _assertNodeIsStronglyTyped(node, "slice");
-      return {
-        ...node.execute(),
-        rotationCount,
-      };
+      return { ...node.execute(), rotationCount };
     case "face":
       _assertNodeIsStronglyTyped(node, "face");
       return {
@@ -101,9 +112,80 @@ function doMove(
         axis: node.execute(),
         rotationCount,
       };
+    case "deepTurnAny":
+      _assertNodeIsStronglyTyped(node, "deepTurnAny");
+      return { ...node.execute(), rotationCount };
     default:
       forceNever(node);
   }
+}
+
+const deepTurnAny: _FrameworkVisitorCallback<DeepTurnAnyNode> = (
+  deepTurn:
+    | DeepTurnPrefixNode
+    | DeepTurnJapaneseNode
+    | DeepTurnSubNode
+    | DeepTurnFaceNode,
+): PartialDeepTurn => {
+  switch (deepTurn.ctorName) {
+    case "deepTurnPrefix":
+      _assertNodeIsStronglyTyped(deepTurn, "deepTurnPrefix");
+      return deepTurn.execute();
+    case "deepTurnJapanese":
+      _assertNodeIsStronglyTyped(deepTurn, "deepTurnJapanese");
+      return deepTurn.execute();
+    case "deepTurnSub":
+      _assertNodeIsStronglyTyped(deepTurn, "deepTurnSub");
+      return deepTurn.execute();
+    case "deepTurnFace":
+      _assertNodeIsStronglyTyped(deepTurn, "deepTurnFace");
+      return deepTurn.execute();
+    default:
+      forceNever(deepTurn);
+  }
+};
+const deepTurnPrefix: _FrameworkVisitorCallback<DeepTurnPrefixNode> = (
+  prefix: PrefixNode,
+  face: DeepTurnJapaneseNode,
+): PartialDeepTurn => ({ ...face.execute(), depth: prefix.execute() - 1 });
+const deepTurnJapanese: _FrameworkVisitorCallback<DeepTurnJapaneseNode> = (
+  face: FaceNode,
+  _w: _Terminal,
+): PartialDeepTurn => getDeepTurn(face.execute(), 1);
+
+const deepTurnSub: _FrameworkVisitorCallback<DeepTurnSubNode> = (
+  face: FaceNode,
+  sub: SubscriptNode,
+): PartialDeepTurn => {
+  _assertNodeIsStronglyTyped(face, "face");
+  _assertNodeIsStronglyTyped(sub, "subscript");
+  return getDeepTurn(face.execute(), sub.execute() - 1);
+};
+const deepTurnFace_front: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
+  _face: _Terminal,
+): PartialDeepTurn => getDeepTurn(CubeSide.Front, 1);
+const deepTurnFace_up: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
+  _face: _Terminal,
+): PartialDeepTurn => getDeepTurn(CubeSide.Top, 1);
+const deepTurnFace_right: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
+  _face: _Terminal,
+): PartialDeepTurn => getDeepTurn(CubeSide.Right, 1);
+const deepTurnFace_back: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
+  _face: _Terminal,
+): PartialDeepTurn => getDeepTurn(CubeSide.Back, 1);
+const deepTurnFace_left: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
+  _face: _Terminal,
+): PartialDeepTurn => getDeepTurn(CubeSide.Left, 1);
+const deepTurnFace_down: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
+  _face: _Terminal,
+): PartialDeepTurn => getDeepTurn(CubeSide.Bottom, 1);
+
+function getDeepTurn(sideId: CubeSide, depth: number): PartialDeepTurn {
+  return {
+    type: CubeActionType.RotateFaceDeepTurn,
+    sideId: sideId,
+    depth,
+  };
 }
 
 const wholeCube_cubeOnR: _FrameworkVisitorCallback<WholeCubeNode> = (
@@ -166,6 +248,31 @@ const face_down: _FrameworkVisitorCallback<FaceNode> = (
   _face: _Terminal,
 ): CubeSide => CubeSide.Bottom;
 
+const subscript_latex: _FrameworkVisitorCallback<SubscriptNode> = (
+  _: _Terminal,
+  digit: _Terminal,
+): number => Number.parseInt(digit.sourceString);
+const subscript_unicode: _FrameworkVisitorCallback<SubscriptNode> = (
+  subscript: _Terminal,
+): number => {
+  switch (subscript.sourceString) {
+    case "\u2082":
+      return 2;
+    case "\u2083":
+      return 3;
+    case "\u2084":
+      return 4;
+    case "\u2085":
+      return 5;
+    default:
+      assert(false);
+  }
+};
+
+const prefix: _FrameworkVisitorCallback<PrefixNode> = (
+  digit: _Terminal,
+): number => Number.parseInt(digit.sourceString);
+
 type ExpressionNode = _SemanticParseNode<
   "expression",
   "execute",
@@ -187,7 +294,50 @@ type MoveNode = _SemanticParseNode<
   [SomeMoveNode, _Terminal] | [SomeMoveNode]
 >;
 
-type SomeMoveNode = SliceNode | FaceNode | WholeCubeNode;
+type SomeMoveNode = SliceNode | FaceNode | WholeCubeNode | DeepTurnAnyNode;
+
+type DeepTurnAnyNode = _SemanticParseNode<
+  "deepTurnAny",
+  "execute",
+  PartialDeepTurn,
+  | [DeepTurnPrefixNode]
+  | [DeepTurnJapaneseNode]
+  | [DeepTurnSubNode]
+  | [DeepTurnFaceNode]
+>;
+type DeepTurnPrefixNode = _SemanticParseNode<
+  "deepTurnPrefix",
+  "execute",
+  PartialDeepTurn,
+  [PrefixNode, DeepTurnJapaneseNode]
+>;
+type DeepTurnJapaneseNode = _SemanticParseNode<
+  "deepTurnJapanese",
+  "execute",
+  PartialDeepTurn,
+  [FaceNode, _Terminal]
+>;
+type DeepTurnSubNode = _SemanticParseNode<
+  "deepTurnSub",
+  "execute",
+  PartialDeepTurn,
+  [FaceNode, SubscriptNode]
+>;
+type DeepTurnFaceNode = _SemanticParseNode<
+  "deepTurnFace",
+  "execute",
+  PartialDeepTurn,
+  [_Terminal]
+>;
+
+type FaceNode = _SemanticParseNode<"face", "execute", CubeSide, [_Terminal]>;
+
+type SliceNode = _SemanticParseNode<
+  "slice",
+  "execute",
+  PartialSlice,
+  [_Terminal]
+>;
 
 type WholeCubeNode = _SemanticParseNode<
   "wholeCube",
@@ -196,11 +346,16 @@ type WholeCubeNode = _SemanticParseNode<
   [_Terminal]
 >;
 
-type SliceNode = _SemanticParseNode<
-  "slice",
+type SubscriptNode = _SemanticParseNode<
+  "subscript",
   "execute",
-  Omit<ICubeRotateSliceAction, "rotationCount">,
-  [_Terminal]
+  number,
+  [_Terminal] | [_Terminal, _Terminal]
 >;
 
-type FaceNode = _SemanticParseNode<"face", "execute", CubeSide, [_Terminal]>;
+type PrefixNode = _SemanticParseNode<"prefix", "execute", number, [_Terminal]>;
+
+type PartialSlice = RotationLessAction<ICubeRotateSliceAction>;
+type PartialDeepTurn = RotationLessAction<ICubeRotateFaceDeepAction>;
+
+type RotationLessAction<T> = Omit<T, "rotationCount">;

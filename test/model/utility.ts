@@ -1,7 +1,16 @@
 import fc from "fast-check";
 import { expect } from "vitest";
-import { Counter, DeepReadonly, forceNever } from "../../src/common";
-import { CubeActionType, CubeActions } from "../../src/components/cubes";
+import {
+  Counter,
+  DeepReadonly,
+  forceNever,
+  isBoundedInteger,
+} from "../../src/common";
+import {
+  CubeActionType,
+  CubeActions,
+  puzzleReducer,
+} from "../../src/components/cubes";
 import { interpretAlgorithm } from "../../src/model/algorithm";
 import {
   CubeAxis,
@@ -16,6 +25,7 @@ import {
   RotationAmount,
   refocusCube,
   rotateCube,
+  rotateCubeDeepTurn,
   rotateCubeFace,
   rotateCubeFromFace,
   rotateCubeInternalSlice,
@@ -392,6 +402,60 @@ class RotateFaceCommand extends PuzzleCubeCommand<CubeActionType.RotateFace> {
   }
 }
 
+class RotateFaceDeepCommand extends PuzzleCubeCommand<CubeActionType.RotateFaceDeepTurn> {
+  public side: CubeSide;
+  public rotationCount: number;
+  public depth: number;
+
+  public constructor(side: CubeSide, rotationCount: number, depth: number) {
+    super(CubeActionType.RotateFaceDeepTurn);
+    this.side = side;
+    this.rotationCount = rotationCount;
+    this.depth = depth;
+  }
+
+  public override check(m: Readonly<PuzzleCubeModel>): boolean {
+    return m.cubeSize > 2 && isBoundedInteger(this.depth, 2, m.cubeSize - 2);
+  }
+
+  protected override mutateCube(r: CubeData) {
+    return rotateCubeDeepTurn(r, this.side, this.depth, this.rotationCount);
+  }
+
+  protected override extraCheck(
+    model: DeepReadonly<PuzzleCubeModel>,
+    originalCube: DeepReadonly<CubeData>,
+    newCube: DeepReadonly<CubeData>,
+  ): void {
+    // When you rotate a given face it should never touch the face on the opposite side
+    const size = model.cubeSize;
+    let opposite: CubeSide;
+    switch (this.side) {
+      case CubeSide.Front:
+        opposite = CubeSide.Back;
+        break;
+      case CubeSide.Back:
+        opposite = CubeSide.Front;
+        break;
+      case CubeSide.Left:
+        opposite = CubeSide.Right;
+        break;
+      case CubeSide.Right:
+        opposite = CubeSide.Left;
+        break;
+      case CubeSide.Top:
+        opposite = CubeSide.Bottom;
+        break;
+      case CubeSide.Bottom:
+        opposite = CubeSide.Top;
+        break;
+      default:
+        forceNever(this.side);
+    }
+    this._checkSide(size, opposite, newCube, originalCube);
+  }
+}
+
 class RotateSliceFromFaceCommand extends PuzzleCubeCommand<CubeActionType.RotateSlice> {
   public faceRef: CubeSide;
   public axis: CubeAxis;
@@ -594,6 +658,9 @@ export const fcCube = (gen: fc.GeneratorValue): DeepReadonly<CubeData> => {
 export const fcRotateFaceCommand = fc
   .tuple(fcCubeSides, fcRotationCounts)
   .map(([side, cnt]) => new RotateFaceCommand(side, cnt));
+export const fcRotateFaceDeepCommand = fc
+  .tuple(fcCubeSides, fcRotationCounts, fcSliceSizes)
+  .map(([side, cnt, depth]) => new RotateFaceDeepCommand(side, depth, cnt));
 export const fcRotateSliceFromFaceCommand = fc
   .tuple(
     fcCubeSides,
@@ -630,6 +697,7 @@ export const fcRotateWholeCubeFromFaceCommand = fc
   );
 export const CubeCommands = [
   fcRotateFaceCommand,
+  fcRotateFaceDeepCommand,
   fcRotateSliceFromFaceCommand,
   fcFocusCubeFaceCommand,
   fcRotateWholeCubeCommand,
@@ -700,64 +768,9 @@ export function runActionsOnCube(
   actions: readonly CubeActions[],
 ): CubeData {
   for (const action of actions) {
-    cube = _runOneAction(cube, action);
+    cube = puzzleReducer(cube, action);
   }
   return cube;
-}
-
-function _runOneAction(cube: CubeData, action: CubeActions): CubeData {
-  const cubeSize = getCubeSize(cube);
-  switch (action.type) {
-    case CubeActionType.RotateFace:
-      return rotateCubeFace(cube, action.sideId, action.rotationCount);
-    case CubeActionType.RotateSlice: {
-      const [offsetStart, offsetSize] = _normalizeSliceOffsets(
-        cubeSize,
-        action.offsetIndex,
-        action.offsetSize,
-      );
-      return rotateCubeSliceFromFace(
-        cube,
-        action.refSide,
-        action.axis,
-        offsetStart,
-        offsetSize,
-        action.direction,
-        action.rotationCount,
-      );
-    }
-    case CubeActionType.ResizeCube:
-      return getTestCube(action.newSize);
-    case CubeActionType.ResetCube:
-      return getTestCube(cubeSize);
-    case CubeActionType.FocusCube:
-      return refocusCube(cube, action.focusFace);
-    case CubeActionType.RotateCube:
-      return rotateCube(cube, action.axis, action.rotationCount);
-    case CubeActionType.RotateCubeFromFace:
-      return rotateCubeFromFace(
-        cube,
-        action.faceRef,
-        action.direction,
-        action.rotationCount,
-      );
-    default:
-      forceNever(action);
-  }
-}
-
-function _normalizeSliceOffsets(
-  cubeSize: number,
-  offsetStart: number | undefined,
-  offsetSize: number | undefined,
-): [number, number] {
-  if (offsetStart === undefined) {
-    return [1, cubeSize - 2];
-  } else if (offsetSize === undefined) {
-    return [offsetStart, 1];
-  } else {
-    return [offsetStart, offsetSize];
-  }
 }
 
 export function checkAllActionInvariants(
@@ -771,10 +784,19 @@ export function checkActionInvariants(action: CubeActions): void {
     case CubeActionType.RotateFace:
       expectSideId(action.sideId, `RotateFace`);
       break;
+    case CubeActionType.RotateFaceDeepTurn:
+      expectSideId(action.sideId, `RotateFace`);
+      expectOffsets(1, action.depth, `RotateFaceDeepTurn`);
+      break;
     case CubeActionType.RotateSlice:
       expectAxis(action.axis, `RotateSlice`);
       expectSideId(action.refSide, `RotateSlice`);
-      expectOffsets(action.offsetIndex, action.offsetSize, `RotateSlice`);
+      expectOffsets(
+        action.offsetIndex,
+        action.offsetSize,
+        `RotateSlice`,
+        undefined,
+      );
       break;
     case CubeActionType.ResetCube:
       break;
@@ -847,4 +869,18 @@ export function expectOffsets(
       }
     }
   }
+}
+
+export function flattenAlgorithmParts(
+  parts: readonly (string | readonly string[])[],
+): string {
+  const flatParts: string[] = [];
+  for (const part of parts) {
+    if (Array.isArray(part)) {
+      flatParts.push(...part);
+    } else {
+      flatParts.push(part as string);
+    }
+  }
+  return flatParts.join("");
 }

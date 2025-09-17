@@ -1,8 +1,11 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { cross } from "../../../src/common";
+import { cross, zip } from "../../../src/common";
 import {
   CubeActionType,
+  CubeActions,
+  ICubeRotateFaceAction,
+  ICubeRotateFaceDeepAction,
   ICubeRotateSliceAction,
 } from "../../../src/components/cubes";
 import { _getCleanAlgorithmSteps } from "../../../src/model/algorithm";
@@ -21,51 +24,20 @@ describe("_getActionSemantics", () => {
   it("should be able to parse valid generated expressions", () =>
     fc.assert(
       fc.property(fcAlgorithmText, ({ algorithm }) => {
-        const parser = _getAlgorithmParser();
-        const semantics = _getActionSemantics(parser);
-        const match = parser.match(algorithm);
-        const adapter = semantics(match);
-        const result = adapter.execute();
-        expect(result.length).toBe(_getCleanAlgorithmSteps(algorithm).length);
+        const [result, cleanSteps] = _parseAndExecute(algorithm);
+        expect(result.length).toBe(cleanSteps.length);
         checkAllActionInvariants(result);
       }),
     ));
 
   describe("Face Rotations (Exhaustive)", () => {
-    const cubeSides = [
-      CubeSide.Front,
-      CubeSide.Top,
-      CubeSide.Right,
-      CubeSide.Back,
-      CubeSide.Left,
-      CubeSide.Bottom,
-    ];
-    const cubeRot = [
-      RotationAmount.Clockwise,
-      RotationAmount.Halfway,
-      RotationAmount.CounterClockwise,
-    ];
-    const faces = ["F", "U", "R", "B", "L", "D"];
-    const rotations = ["", "2", "'"];
-
-    const tests = cross(faces, rotations);
-    const expected = cross(cubeSides, cubeRot);
-
-    const cases = tests.map(([face, rot], ix) => ({
-      step: `${face}${rot}`,
-      action: expected[ix],
-    }));
+    const expected = _crossFaceActions();
+    const algorithmSteps = _crossAlgSteps(["F", "U", "R", "B", "L", "D"]);
+    const cases = _getTestCases(algorithmSteps, expected);
 
     it.each(cases)("Should get an action for $step", ({ step, action }) => {
-      const parser = _getAlgorithmParser();
-      const semantics = _getActionSemantics(parser);
-      const match = parser.match(step);
-      const adapter = semantics(match);
-      const actualActions = adapter.execute();
-      expect(actualActions.length).toBe(1);
-      expect(actualActions[0].type).toBe(CubeActionType.RotateFace);
-      expect(actualActions[0].sideId).toBe(action[0]);
-      expect(actualActions[0].rotationCount).toBe(action[1]);
+      const [actualActions, ..._] = _parseAndExecute(step);
+      expect(actualActions).toStrictEqual([action]);
       checkAllActionInvariants(actualActions);
     });
 
@@ -77,13 +49,7 @@ describe("_getActionSemantics", () => {
           fc.commands(CubeCommands, { size: "xsmall" }),
           (caseIx, cubeSize, cmds) => {
             const { step, action } = cases[caseIx];
-            fcCompareActionWithActual(cubeSize, cmds, step, [
-              {
-                type: CubeActionType.RotateFace,
-                sideId: action[0],
-                rotationCount: action[1],
-              },
-            ]);
+            fcCompareActionWithActual(cubeSize, cmds, step, [action]);
           },
         ),
       ));
@@ -110,33 +76,13 @@ describe("_getActionSemantics", () => {
         direction: SliceDirection.Up,
       },
     ];
-    const cubeRot = [
-      RotationAmount.Clockwise,
-      RotationAmount.Halfway,
-      RotationAmount.CounterClockwise,
-    ];
-    const slices = ["M", "E", "S"];
-    const rotations = ["", "2", "'"];
-
-    const tests = cross(slices, rotations);
-    const expected = cross(actions, cubeRot);
-
-    const cases = tests.map(([slice, rot], ix) => ({
-      step: `${slice}${rot}`,
-      action: expected[ix],
-    }));
+    const tests = _crossAlgSteps(["M", "E", "S"]);
+    const expected = _crossSliceActions(actions);
+    const cases = _getTestCases(tests, expected);
 
     it.each(cases)("Should get an action for $step", ({ step, action }) => {
-      const parser = _getAlgorithmParser();
-      const semantics = _getActionSemantics(parser);
-      const match = parser.match(step);
-      const adapter = semantics(match);
-      const actualActions = adapter.execute();
-      expect(actualActions.length).toBe(1);
-      expect(actualActions[0]).toStrictEqual({
-        ...action[0],
-        rotationCount: action[1],
-      });
+      const [actualActions, ..._] = _parseAndExecute(step);
+      expect(actualActions).toStrictEqual([action]);
       checkAllActionInvariants(actualActions);
     });
 
@@ -147,46 +93,33 @@ describe("_getActionSemantics", () => {
           fcAlgCubeSize.filter(v => v > 2),
           fc.commands(CubeCommands, { size: "xsmall" }),
           (caseIx, cubeSize, cmds) => {
-            const {
-              step,
-              action: [action, rotationCount],
-            } = cases[caseIx];
-            fcCompareActionWithActual(cubeSize, cmds, step, [
-              { ...action, rotationCount },
-            ]);
+            const { step, action } = cases[caseIx];
+            fcCompareActionWithActual(cubeSize, cmds, step, [action]);
           },
         ),
       ));
   });
 
   describe("Cube Rotations (Exhaustive)", () => {
-    const axes = ["Y", "X", "Z"]; // NOTE THE DIFFERENCE; algorithm terminology is different from what I made when I started developing this, and its too much work to change it now
+    // NOTE THE DIFFERENCE: algorithm terminology is different from the axis
+    // labels I picked when I started developing this, and its too much work to
+    // change it now
+    const axes = ["Y", "X", "Z", "Y", "X", "Z"];
     const cubeRot = [
       RotationAmount.Clockwise,
       RotationAmount.Halfway,
       RotationAmount.CounterClockwise,
     ];
-    const cubeAxes = ["X", "Y", "Z"];
-    const rotations = ["", "2", "'"];
-
-    const tests = cross(cubeAxes, rotations);
-    const expected = cross(axes, cubeRot);
-
-    const cases = tests.map(([axis, rot], ix) => ({
-      step: `${axis}${rot}`,
-      action: expected[ix],
-    }));
+    const tests = _crossAlgSteps(["X", "Y", "Z", "x", "y", "z"]);
+    const expected = cross(axes, cubeRot).map(
+      ([axis, rotationCount]) =>
+        ({ type: CubeActionType.RotateCube, axis, rotationCount }) as const,
+    );
+    const cases = _getTestCases(tests, expected);
 
     it.each(cases)("Should get an action for $step", ({ step, action }) => {
-      const parser = _getAlgorithmParser();
-      const semantics = _getActionSemantics(parser);
-      const match = parser.match(step);
-      const adapter = semantics(match);
-      const actualActions = adapter.execute();
-      expect(actualActions.length).toBe(1);
-      expect(actualActions[0].type).toBe(CubeActionType.RotateCube);
-      expect(actualActions[0].axis).toBe(action[0]);
-      expect(actualActions[0].rotationCount).toBe(action[1]);
+      const [actualActions, ..._] = _parseAndExecute(step);
+      expect(actualActions).toStrictEqual([action]);
       checkAllActionInvariants(actualActions);
     });
 
@@ -198,15 +131,266 @@ describe("_getActionSemantics", () => {
           fc.commands(CubeCommands, { size: "xsmall" }),
           (caseIx, cubeSize, cmds) => {
             const { step, action } = cases[caseIx];
-            fcCompareActionWithActual(cubeSize, cmds, step, [
-              {
-                type: CubeActionType.RotateCube,
-                axis: action[0],
-                rotationCount: action[1],
-              },
-            ]);
+            fcCompareActionWithActual(cubeSize, cmds, step, [action]);
           },
         ),
       ));
   });
+
+  describe("Deep Turns (Exhaustive)", () => {
+    describe("3x3 Deep Turns", () => {
+      const tests = _crossAlgSteps(["f", "u", "r", "b", "l", "d"]);
+      const expectedActions = _crossDeepFaceActions([1]);
+      const cases = _getTestCases(tests, expectedActions);
+
+      it.each(cases)("Should get an action for $step", ({ step, action }) => {
+        const [actualActions, ..._] = _parseAndExecute(step);
+        expect(actualActions).toStrictEqual([action]);
+        checkAllActionInvariants(actualActions);
+      });
+
+      it("Should be equivalent to an action", () =>
+        fc.assert(
+          fc.property(
+            fc.nat({ max: cases.length - 1 }),
+            fcAlgCubeSize.filter(size => size > 2),
+            fc.commands(CubeCommands, { size: "xsmall" }),
+            (caseIx, cubeSize, cmds) => {
+              const { step, action } = cases[caseIx];
+              fcCompareActionWithActual(cubeSize, cmds, step, [action]);
+            },
+          ),
+        ));
+    });
+
+    describe("3x3 Deep Turns - Japanese Notation", () => {
+      const tests = _crossAlgSteps(["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"]);
+      const expectedActions = _crossDeepFaceActions([1]);
+      const cases = _getTestCases(tests, expectedActions);
+
+      it.each(cases)("Should get an action for $step", ({ step, action }) => {
+        const [actualActions, ..._] = _parseAndExecute(step);
+        expect(actualActions).toStrictEqual([action]);
+        checkAllActionInvariants(actualActions);
+      });
+
+      it("Should be equivalent to an action", () =>
+        fc.assert(
+          fc.property(
+            fc.nat({ max: cases.length - 1 }),
+            fcAlgCubeSize.filter(size => size > 2),
+            fc.commands(CubeCommands, { size: "xsmall" }),
+            (caseIx, cubeSize, cmds) => {
+              const { step, action } = cases[caseIx];
+              fcCompareActionWithActual(cubeSize, cmds, step, [action]);
+            },
+          ),
+        ));
+    });
+
+    describe("4x4 Deep Turns LaTeX Subscripts", () => {
+      const subscripts = [2, 3, 4, 5];
+      const tests = _crossAlgSteps(
+        cross(["F", "U", "R", "B", "L", "D"], subscripts).map(
+          ([face, sub]) => `${face}_${sub}`,
+        ),
+      );
+      const expectedActions = _crossDeepFaceActions(subscripts.map(v => v - 1));
+      const cases = _getTestCases(tests, expectedActions);
+
+      it.each(cases)("Should get an action for $step", ({ step, action }) => {
+        const [actualActions, ..._] = _parseAndExecute(step);
+        expect(actualActions).toStrictEqual([action]);
+        checkAllActionInvariants(actualActions);
+      });
+
+      it("Should be equivalent to an action", () =>
+        fc.assert(
+          fc.property(
+            fc
+              .tuple(
+                fc.nat({ max: cases.length - 1 }),
+                fcAlgCubeSize.filter(size => size > 2),
+              )
+              .filter(
+                ([caseIx, cubeSize]) =>
+                  (cases[caseIx].action as ICubeRotateFaceDeepAction).depth
+                  < cubeSize - 1,
+              ),
+            fc.commands(CubeCommands, { size: "xsmall" }),
+            ([caseIx, cubeSize], cmds) => {
+              const { step, action } = cases[caseIx];
+              fcCompareActionWithActual(cubeSize, cmds, step, [action]);
+            },
+          ),
+        ));
+    });
+
+    describe("4x4 Deep Turns Unicode Subscripts", () => {
+      const subscripts = [2, 3, 4, 5];
+      const tests = _crossAlgSteps(
+        cross(["F", "U", "R", "B", "L", "D"], subscripts).map(
+          ([face, sub]) => `${face}${String.fromCodePoint(8320 + sub)}`, // \u2080 === 8320 in base10
+        ),
+      );
+      const expectedActions = _crossDeepFaceActions(subscripts.map(v => v - 1));
+      const cases = _getTestCases(tests, expectedActions);
+
+      it.each(cases)("Should get an action for $step", ({ step, action }) => {
+        const [actualActions, ..._] = _parseAndExecute(step);
+        expect(actualActions).toStrictEqual([action]);
+        checkAllActionInvariants(actualActions);
+      });
+
+      it("Should be equivalent to an action", () =>
+        fc.assert(
+          fc.property(
+            fc
+              .tuple(
+                fc.nat({ max: cases.length - 1 }),
+                fcAlgCubeSize.filter(size => size > 2),
+              )
+              .filter(
+                ([caseIx, cubeSize]) =>
+                  (cases[caseIx].action as ICubeRotateFaceDeepAction).depth
+                  < cubeSize - 1,
+              ),
+            fc.commands(CubeCommands, { size: "xsmall" }),
+            ([caseIx, cubeSize], cmds) => {
+              const { step, action } = cases[caseIx];
+              fcCompareActionWithActual(cubeSize, cmds, step, [action]);
+            },
+          ),
+        ));
+    });
+
+    describe("5x5 Deep Turns Prefixed", () => {
+      const subscripts = [3, 4, 5];
+      const tests = _crossAlgSteps(
+        cross(["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"], subscripts).map(
+          ([face, sub]) => `${sub}${face}`,
+        ),
+      );
+      const expectedActions = _crossDeepFaceActions(subscripts.map(v => v - 1));
+      const cases = _getTestCases(tests, expectedActions);
+
+      it.each(cases)("Should get an action for $step", ({ step, action }) => {
+        const [actualActions, ..._] = _parseAndExecute(step);
+        expect(actualActions).toStrictEqual([action]);
+        checkAllActionInvariants(actualActions);
+      });
+
+      it("Should be equivalent to an action", () =>
+        fc.assert(
+          fc.property(
+            fc
+              .tuple(
+                fc.nat({ max: cases.length - 1 }),
+                fcAlgCubeSize.filter(size => size > 2),
+              )
+              .filter(
+                ([caseIx, cubeSize]) =>
+                  (cases[caseIx].action as ICubeRotateFaceDeepAction).depth
+                  < cubeSize - 1,
+              ),
+            fc.commands(CubeCommands, { size: "xsmall" }),
+            ([caseIx, cubeSize], cmds) => {
+              const { step, action } = cases[caseIx];
+              fcCompareActionWithActual(cubeSize, cmds, step, [action]);
+            },
+          ),
+        ));
+    });
+  });
 });
+
+function _parseAndExecute(algorithm: string): [CubeActions[], string[]] {
+  const parser = _getAlgorithmParser();
+  const semantics = _getActionSemantics(parser);
+  const match = parser.match(algorithm);
+  const adapter = semantics(match);
+  const result = adapter.execute();
+  return [result, _getCleanAlgorithmSteps(algorithm)];
+}
+
+function _getTestCases(
+  steps: readonly string[],
+  expected: readonly CubeActions[],
+): { step: string; action: CubeActions }[] {
+  const result: { step: string; action: CubeActions }[] = [];
+  zip(steps, expected, (step, action) => result.push({ step, action }));
+  return result;
+}
+
+function _crossAlgSteps(steps: readonly string[]): string[] {
+  const rotations = ["", "2", "'"];
+  return cross(steps, rotations).map(([step, rot]) => `${step}${rot}`);
+}
+
+function _crossFaceActions(
+  crossWith: readonly unknown[] = [],
+): ICubeRotateFaceAction[] {
+  const cubeSides: CubeSide[] = [
+    CubeSide.Front,
+    CubeSide.Top,
+    CubeSide.Right,
+    CubeSide.Back,
+    CubeSide.Left,
+    CubeSide.Bottom,
+  ];
+  const cubeRot = [
+    RotationAmount.Clockwise,
+    RotationAmount.Halfway,
+    RotationAmount.CounterClockwise,
+  ];
+  return cross(
+    crossWith.length
+      ? cross(cubeSides, crossWith).map(([l, _r]) => l)
+      : cubeSides,
+    cubeRot,
+  ).map(([sideId, rotationCount]) => ({
+    type: CubeActionType.RotateFace,
+    sideId,
+    rotationCount,
+  }));
+}
+
+function _crossDeepFaceActions(
+  depths: readonly number[],
+): ICubeRotateFaceDeepAction[] {
+  const cubeSides: CubeSide[] = [
+    CubeSide.Front,
+    CubeSide.Top,
+    CubeSide.Right,
+    CubeSide.Back,
+    CubeSide.Left,
+    CubeSide.Bottom,
+  ];
+  const cubeRot = [
+    RotationAmount.Clockwise,
+    RotationAmount.Halfway,
+    RotationAmount.CounterClockwise,
+  ];
+  return cross(cross(cubeSides, depths), cubeRot).map(
+    ([[sideId, depth], rotationCount]) => ({
+      type: CubeActionType.RotateFaceDeepTurn,
+      sideId,
+      rotationCount,
+      depth,
+    }),
+  );
+}
+
+function _crossSliceActions(
+  slices: Omit<ICubeRotateSliceAction, "rotationCount">[],
+): ICubeRotateSliceAction[] {
+  const cubeRot = [
+    RotationAmount.Clockwise,
+    RotationAmount.Halfway,
+    RotationAmount.CounterClockwise,
+  ];
+  return cross(slices, cubeRot).map(([slice, rotationCount]) => ({
+    ...slice,
+    rotationCount,
+  }));
+}

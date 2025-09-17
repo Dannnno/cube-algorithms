@@ -97,7 +97,44 @@ export function rotateCubeFace(
     numTurns,
   );
 
-  const result = _rotateCubeFace(newCube, cubeSize, sideId, numRotations);
+  const result = _rotateCubeFace(
+    newCube,
+    cubeSize,
+    sideId,
+    numRotations,
+    0,
+    false,
+  );
+  return result;
+}
+
+/**
+ * Deeply rotate a single cube face, including slices further in
+ * @param cubeData The cube data
+ * @param sideId Which face is being rotated clockwise
+ * @param depth How deep into the cube to rotate
+ * @param numTurns How many turns to rotate the cube face
+ * @returns The modified cube data
+ */
+export function rotateCubeDeepTurn(
+  cubeData: DeepReadonly<CubeData>,
+  sideId: CubeSide,
+  depth: number,
+  numTurns: number,
+): CubeData {
+  const [newCube, cubeSize, numRotations] = _setupManipulation(
+    cubeData,
+    numTurns,
+  );
+
+  const result = _rotateCubeFace(
+    newCube,
+    cubeSize,
+    sideId,
+    numRotations,
+    depth - 1,
+    false,
+  );
   return result;
 }
 
@@ -106,6 +143,7 @@ function _rotateCubeFace(
   cubeSize: number,
   sideId: CubeSide,
   numTurns: RotationAmount,
+  depth: number,
   skipSlice: boolean = false,
 ): CubeData {
   if (numTurns === 0) {
@@ -201,8 +239,8 @@ function _rotateCubeFace(
     let edgeIndex: number; // how far in to slice
     const leftOfRefFace = 0;
     const topOfRefFace = 0;
-    const rightOfRefFace = cubeSize - 1;
-    const bottomOfRefFace = cubeSize - 1;
+    const rightOfRefFace = cubeSize - depth - 1;
+    const bottomOfRefFace = cubeSize - depth - 1;
 
     let rotCount: number; // how many times to rotate it
 
@@ -279,7 +317,7 @@ function _rotateCubeFace(
       cubeSize,
       axis,
       edgeIndex,
-      1,
+      depth + 1,
       rotCount * numTurns,
     );
   }
@@ -705,7 +743,7 @@ export function refocusCube(
 
   const fixFace = (face: CubeSide, numRotations: number) => {
     numRotations = _normalizeRotations(numRotations);
-    _rotateCubeFace(newCube, size, face, numRotations, true);
+    _rotateCubeFace(newCube, size, face, numRotations, 0, true);
   };
 
   const numPopsDict = {
@@ -879,12 +917,13 @@ function _rotateCube(
     default:
       forceNever(axis);
   }
-  _rotateCubeFace(cube, size, front, numRotations, true);
+  _rotateCubeFace(cube, size, front, numRotations, 0, true);
   _rotateCubeFace(
     cube,
     size,
     back,
     _normalizeRotations(numRotations * -1),
+    0,
     true,
   );
   return cube;

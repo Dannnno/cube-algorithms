@@ -1,5 +1,5 @@
-import { DeepReadonly, forceNever } from "@/common";
-import { CubeActionType, CubeActions } from "@/components/cubes";
+import { assert, DeepReadonly, forceNever, isBoundedInteger } from "@/common";
+import { CubeActions, CubeActionType } from "@/components/cubes";
 import { _getActionSemantics } from "./actions";
 import { _getAlgorithmParser } from "./parser";
 
@@ -37,6 +37,10 @@ export enum InvalidStepReason {
   SyntaxError,
   /** Slices are not allowed for this cube size */
   SlicesNotAllowed,
+  /** The slice would extend beyond the end of the cube */
+  SliceSizeTooLarge,
+  /** The start of the slice is out of range */
+  SliceIndexOutOfRange,
 }
 
 /**
@@ -58,6 +62,7 @@ export function interpretAlgorithm(
       steps: [],
       invalidSteps: [
         {
+          step: undefined,
           stepIndex: 0,
           stepLiteral: algorithm,
           invalidReason: InvalidStepReason.SyntaxError,
@@ -132,8 +137,10 @@ function _validateStep(
     case CubeActionType.RotateCube:
     case CubeActionType.RotateCubeFromFace:
       return { isInvalid: false };
+    case CubeActionType.RotateFaceDeepTurn:
+      return _validateSliceIndices(cubeSize, 1, action.depth);
     case CubeActionType.RotateSlice:
-      return _checkSliceIndices(
+      return _validateSliceIndices(
         cubeSize,
         action.offsetIndex,
         action.offsetSize,
@@ -143,13 +150,29 @@ function _validateStep(
   }
 }
 
-function _checkSliceIndices(
+function _validateSliceIndices(
   cubeSize: number,
-  _offsetIndex: number | undefined,
-  _offsetSize: number | undefined,
+  offsetIndex: number | undefined,
+  offsetSize: number | undefined,
 ): IValidStepResult | IInvalidStepResult {
   if (cubeSize === 2) {
     return { isInvalid: true, reason: InvalidStepReason.SlicesNotAllowed };
+  }
+
+  if (offsetIndex === undefined) {
+    assert(offsetSize === undefined, `Can't have a defined size but no index`);
+    return { isInvalid: false };
+  }
+
+  if (!isBoundedInteger(offsetIndex, 1, cubeSize - 2)) {
+    return { isInvalid: true, reason: InvalidStepReason.SliceIndexOutOfRange };
+  }
+
+  if (
+    offsetSize !== undefined
+    && !isBoundedInteger(offsetIndex + offsetSize, 2, cubeSize - 1)
+  ) {
+    return { isInvalid: true, reason: InvalidStepReason.SliceSizeTooLarge };
   }
 
   return { isInvalid: false };

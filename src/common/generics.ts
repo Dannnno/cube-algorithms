@@ -12,6 +12,20 @@ export type DeepReadonly<T> = T extends [infer U]
         ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
         : T;
 
+/**
+ * Generic type that forces an object to be writeable from top-to-bottom
+ * @template T the type of object being forced
+ */
+export type DeepWriteable<T> = T extends readonly [infer U]
+  ? [DeepWriteable<U>]
+  : T extends readonly [infer U, ...infer V]
+    ? [DeepWriteable<U>, ...DeepWriteable<V>]
+    : T extends readonly (infer U)[]
+      ? DeepWriteable<U>[]
+      : T extends object
+        ? { -readonly [K in keyof T]: DeepWriteable<T[K]> }
+        : T;
+
 // https://stackoverflow.com/a/52490977/3076272
 /**
  * Type that enforces a tuple of a certain length

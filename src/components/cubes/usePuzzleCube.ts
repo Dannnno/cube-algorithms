@@ -9,6 +9,7 @@ import {
 import {
   refocusCube,
   rotateCube,
+  rotateCubeDeepTurn,
   rotateCubeFace,
   rotateCubeFromFace,
   rotateCubeSliceFromFace,
@@ -23,6 +24,10 @@ export const enum CubeActionType {
    * Rotate a face
    */
   RotateFace = "RotateFace",
+  /**
+   * Rotate a face deeply
+   */
+  RotateFaceDeepTurn = "RotateFaceDeep",
   /**
    * Rotate an internal slice
    */
@@ -54,13 +59,29 @@ interface IActionBase<T extends CubeActionType = CubeActionType> {
   readonly type: T;
 }
 
-interface ICubeRotateFaceAction extends IActionBase<CubeActionType.RotateFace> {
+/**
+ * Rotate a face of a cube
+ */
+export interface ICubeRotateFaceAction
+  extends IActionBase<CubeActionType.RotateFace> {
   /** The face that will be rotated */
   readonly sideId: CubeSide;
   /** How many times to rotate that face clockwise */
   readonly rotationCount: number;
 }
 
+/** Deeply rotate a face */
+export interface ICubeRotateFaceDeepAction
+  extends IActionBase<CubeActionType.RotateFaceDeepTurn> {
+  /** The face that will be rotated */
+  readonly sideId: CubeSide;
+  /** How deeply to rotate a face */
+  readonly depth: number;
+  /** How many times to rotate that face clockwise */
+  readonly rotationCount: number;
+}
+
+/** Slice an internal cube layer while facing a particular face */
 export interface ICubeRotateSliceAction
   extends IActionBase<CubeActionType.RotateSlice> {
   /** Which axis to rotate the internal slices on */
@@ -111,6 +132,7 @@ interface IRotateCubeFromFaceAction
  */
 export type CubeActions =
   | ICubeRotateFaceAction
+  | ICubeRotateFaceDeepAction
   | ICubeRotateSliceAction
   | CubeResetCubeAction
   | ICubeRotateCubeAction
@@ -140,14 +162,27 @@ function buildCubeOfSize(size: number): CubeData {
   ];
 }
 
-const puzzleReducer: React.Reducer<DeepReadonly<CubeData>, CubeActions> = (
-  state: DeepReadonly<CubeData>,
-  action: CubeActions,
-) => {
+/**
+ * Given a cube manipulation, get the new cube state
+ * @param state Current cube state
+ * @param action What to do to the cube
+ * @returns New cube state
+ */
+export const puzzleReducer: React.Reducer<
+  DeepReadonly<CubeData>,
+  CubeActions
+> = (state: DeepReadonly<CubeData>, action: CubeActions) => {
   const cubeSize = getCubeSize(state);
   switch (action.type) {
     case CubeActionType.RotateFace:
       return rotateCubeFace(state, action.sideId, action.rotationCount);
+    case CubeActionType.RotateFaceDeepTurn:
+      return rotateCubeDeepTurn(
+        state,
+        action.sideId,
+        action.depth,
+        action.rotationCount,
+      );
     case CubeActionType.RotateSlice: {
       const [offsetStart, offsetSize] = _normalizeSliceOffsets(
         cubeSize,

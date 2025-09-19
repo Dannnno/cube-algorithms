@@ -214,13 +214,13 @@ function useSlotButton(
       switch (sideId) {
         case CubeSide.Left:
         case CubeSide.Right:
-          axis = "Z";
+          axis = CubeAxis.Standing;
           break;
         case CubeSide.Front:
         case CubeSide.Back:
         case CubeSide.Top:
         case CubeSide.Bottom:
-          axis = "Y";
+          axis = CubeAxis.Middle;
           break;
         default:
           forceNever(sideId);
@@ -247,11 +247,11 @@ function useSlotButton(
         case CubeSide.Front:
         case CubeSide.Right:
         case CubeSide.Back:
-          axis = "X";
+          axis = CubeAxis.Equatorial;
           break;
         case CubeSide.Top:
         case CubeSide.Bottom:
-          axis = "Z";
+          axis = CubeAxis.Standing;
           break;
         default:
           forceNever(sideId);

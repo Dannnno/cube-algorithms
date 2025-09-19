@@ -138,7 +138,7 @@ function _validateStep(
     case CubeActionType.RotateCubeFromFace:
       return { isInvalid: false };
     case CubeActionType.RotateFaceDeepTurn:
-      return _validateSliceIndices(cubeSize, 1, action.depth);
+      return _validateSliceIndices(cubeSize, 1, action.depth - 1);
     case CubeActionType.RotateSlice:
       return _validateSliceIndices(
         cubeSize,

@@ -1,7 +1,12 @@
 import fc from "fast-check";
 import { describe, it } from "vitest";
 import { DeepReadonly } from "../../../src/common";
-import { CubeData, CubeSide, SliceDirection } from "../../../src/model/cube";
+import {
+  CubeAxis,
+  CubeData,
+  CubeSide,
+  SliceDirection,
+} from "../../../src/model/cube";
 import {
   RotationAmount,
   rotateCube,
@@ -61,150 +66,150 @@ function getTestCases(
       faceRef: CubeSide.Left,
       direction: SliceDirection.Left,
       rotation: 1,
-      expectedCube: rotateCube(cube, "X", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Equatorial, 1),
     },
     {
       faceRef: CubeSide.Left,
       direction: SliceDirection.Right,
       rotation: 1,
-      expectedCube: rotateCube(cube, "X", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Equatorial, -1),
     },
     {
       faceRef: CubeSide.Left,
       direction: SliceDirection.Up,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Z", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Standing, 1),
     },
     {
       faceRef: CubeSide.Left,
       direction: SliceDirection.Down,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Z", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Standing, -1),
     },
 
     {
       faceRef: CubeSide.Front,
       direction: SliceDirection.Left,
       rotation: 1,
-      expectedCube: rotateCube(cube, "X", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Equatorial, 1),
     },
     {
       faceRef: CubeSide.Front,
       direction: SliceDirection.Right,
       rotation: 1,
-      expectedCube: rotateCube(cube, "X", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Equatorial, -1),
     },
     {
       faceRef: CubeSide.Front,
       direction: SliceDirection.Up,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Y", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Middle, 1),
     },
     {
       faceRef: CubeSide.Front,
       direction: SliceDirection.Down,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Y", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Middle, -1),
     },
 
     {
       faceRef: CubeSide.Right,
       direction: SliceDirection.Left,
       rotation: 1,
-      expectedCube: rotateCube(cube, "X", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Equatorial, 1),
     },
     {
       faceRef: CubeSide.Right,
       direction: SliceDirection.Right,
       rotation: 1,
-      expectedCube: rotateCube(cube, "X", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Equatorial, -1),
     },
     {
       faceRef: CubeSide.Right,
       direction: SliceDirection.Up,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Z", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Standing, -1),
     },
     {
       faceRef: CubeSide.Right,
       direction: SliceDirection.Down,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Z", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Standing, 1),
     },
 
     {
       faceRef: CubeSide.Back,
       direction: SliceDirection.Left,
       rotation: 1,
-      expectedCube: rotateCube(cube, "X", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Equatorial, 1),
     },
     {
       faceRef: CubeSide.Back,
       direction: SliceDirection.Right,
       rotation: 1,
-      expectedCube: rotateCube(cube, "X", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Equatorial, -1),
     },
     {
       faceRef: CubeSide.Back,
       direction: SliceDirection.Up,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Y", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Middle, -1),
     },
     {
       faceRef: CubeSide.Back,
       direction: SliceDirection.Down,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Y", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Middle, 1),
     },
 
     {
       faceRef: CubeSide.Top,
       direction: SliceDirection.Left,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Z", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Standing, -1),
     },
     {
       faceRef: CubeSide.Top,
       direction: SliceDirection.Right,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Z", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Standing, 1),
     },
     {
       faceRef: CubeSide.Top,
       direction: SliceDirection.Up,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Y", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Middle, 1),
     },
     {
       faceRef: CubeSide.Top,
       direction: SliceDirection.Down,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Y", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Middle, -1),
     },
 
     {
       faceRef: CubeSide.Bottom,
       direction: SliceDirection.Left,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Z", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Standing, 1),
     },
     {
       faceRef: CubeSide.Bottom,
       direction: SliceDirection.Right,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Z", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Standing, -1),
     },
     {
       faceRef: CubeSide.Bottom,
       direction: SliceDirection.Up,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Y", 1),
+      expectedCube: rotateCube(cube, CubeAxis.Middle, 1),
     },
     {
       faceRef: CubeSide.Bottom,
       direction: SliceDirection.Down,
       rotation: 1,
-      expectedCube: rotateCube(cube, "Y", -1),
+      expectedCube: rotateCube(cube, CubeAxis.Middle, -1),
     },
   ];
   return getAllTestCases(

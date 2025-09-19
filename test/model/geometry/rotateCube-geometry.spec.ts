@@ -46,12 +46,12 @@ describe("rotateCube", () => {
 function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
   const testCases = [
     {
-      axis: "X",
+      axis: CubeAxis.Equatorial,
       numRotations: RotationAmount.None,
       expectedCube: baseCube,
     },
     {
-      axis: "X",
+      axis: CubeAxis.Equatorial,
       numRotations: RotationAmount.Clockwise,
       expectedCube: [
         [2, 2, 2, 2, 2, 2, 2, 2, 2],
@@ -63,7 +63,7 @@ function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "X",
+      axis: CubeAxis.Equatorial,
       numRotations: RotationAmount.Halfway,
       expectedCube: [
         [3, 3, 3, 3, 3, 3, 3, 3, 3],
@@ -75,7 +75,7 @@ function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "X",
+      axis: CubeAxis.Equatorial,
       numRotations: RotationAmount.CounterClockwise,
       expectedCube: [
         [4, 4, 4, 4, 4, 4, 4, 4, 4],
@@ -87,12 +87,12 @@ function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "Y",
+      axis: CubeAxis.Middle,
       numRotations: RotationAmount.None,
       expectedCube: baseCube,
     },
     {
-      axis: "Y",
+      axis: CubeAxis.Middle,
       numRotations: RotationAmount.Clockwise,
       expectedCube: [
         [1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -104,7 +104,7 @@ function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "Y",
+      axis: CubeAxis.Middle,
       numRotations: RotationAmount.Halfway,
       expectedCube: [
         [1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -116,7 +116,7 @@ function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "Y",
+      axis: CubeAxis.Middle,
       numRotations: RotationAmount.CounterClockwise,
       expectedCube: [
         [1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -128,12 +128,12 @@ function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "Z",
+      axis: CubeAxis.Standing,
       numRotations: RotationAmount.None,
       expectedCube: baseCube,
     },
     {
-      axis: "Z",
+      axis: CubeAxis.Standing,
       numRotations: RotationAmount.Clockwise,
       expectedCube: [
         [6, 6, 6, 6, 6, 6, 6, 6, 6],
@@ -145,7 +145,7 @@ function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "Z",
+      axis: CubeAxis.Standing,
       numRotations: RotationAmount.Halfway,
       expectedCube: [
         [3, 3, 3, 3, 3, 3, 3, 3, 3],
@@ -157,7 +157,7 @@ function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "Z",
+      axis: CubeAxis.Standing,
       numRotations: RotationAmount.CounterClockwise,
       expectedCube: [
         [5, 5, 5, 5, 5, 5, 5, 5, 5],

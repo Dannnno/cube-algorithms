@@ -7,7 +7,7 @@ import {
   interpretAlgorithm,
   validateActions,
 } from "../../../src/model/algorithm";
-import { CubeSide, SliceDirection } from "../../../src/model/cube";
+import { CubeAxis, CubeSide, SliceDirection } from "../../../src/model/cube";
 import { checkAllActionInvariants } from "../utility";
 import { fcAlgCubeSize, fcAlgorithmText } from "./fcAlgorithm";
 
@@ -42,7 +42,6 @@ describe("interpretAlgorithm", () => {
           checkAllActionInvariants(steps);
         }
       }),
-      { seed: 1813871234, path: "1", endOnFailure: true },
     ),
   );
 
@@ -147,7 +146,7 @@ describe("validateActions", () => {
       [
         {
           type: CubeActionType.RotateSlice,
-          axis: "X",
+          axis: CubeAxis.Equatorial,
           refSide: CubeSide.Left,
           rotationCount: 1,
           direction: SliceDirection.Left,
@@ -160,7 +159,7 @@ describe("validateActions", () => {
       [
         {
           type: CubeActionType.RotateSlice,
-          axis: "Z",
+          axis: CubeAxis.Standing,
           refSide: CubeSide.Left,
           rotationCount: 1,
           direction: SliceDirection.Up,
@@ -173,7 +172,7 @@ describe("validateActions", () => {
       [
         {
           type: CubeActionType.RotateSlice,
-          axis: "Y",
+          axis: CubeAxis.Middle,
           refSide: CubeSide.Front,
           rotationCount: 1,
           direction: SliceDirection.Left,
@@ -187,7 +186,7 @@ describe("validateActions", () => {
       [
         {
           type: CubeActionType.RotateSlice,
-          axis: "Y",
+          axis: CubeAxis.Middle,
           refSide: CubeSide.Front,
           rotationCount: 1,
           direction: SliceDirection.Left,
@@ -201,7 +200,7 @@ describe("validateActions", () => {
       [
         {
           type: CubeActionType.RotateSlice,
-          axis: "Y",
+          axis: CubeAxis.Middle,
           refSide: CubeSide.Front,
           rotationCount: 1,
           direction: SliceDirection.Left,
@@ -216,7 +215,7 @@ describe("validateActions", () => {
       [
         {
           type: CubeActionType.RotateSlice,
-          axis: "Y",
+          axis: CubeAxis.Middle,
           refSide: CubeSide.Front,
           rotationCount: 1,
           direction: SliceDirection.Left,
@@ -264,7 +263,13 @@ describe("validateActions", () => {
       false,
     ],
     [
-      [{ type: CubeActionType.RotateCube, axis: "Y", rotationCount: 1 }],
+      [
+        {
+          type: CubeActionType.RotateCube,
+          axis: CubeAxis.Middle,
+          rotationCount: 1,
+        },
+      ],
       3,
       true,
     ],

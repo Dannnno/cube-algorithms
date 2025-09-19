@@ -57,7 +57,7 @@ function getTestCases(): (IRefocusCubeTestCase & INamedTestCase)[] {
     ]),
   );
 
-  const tests: Omit<IRefocusCubeTestCase, "name">[] = [
+  const tests: IRefocusCubeTestCase[] = [
     {
       cube: testCube,
       focusSide: CubeSide.Left,

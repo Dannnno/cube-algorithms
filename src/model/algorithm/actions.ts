@@ -147,11 +147,11 @@ const deepTurnAny: _FrameworkVisitorCallback<DeepTurnAnyNode> = (
 const deepTurnPrefix: _FrameworkVisitorCallback<DeepTurnPrefixNode> = (
   prefix: PrefixNode,
   face: DeepTurnJapaneseNode,
-): PartialDeepTurn => ({ ...face.execute(), depth: prefix.execute() - 1 });
+): PartialDeepTurn => ({ ...face.execute(), depth: prefix.execute() });
 const deepTurnJapanese: _FrameworkVisitorCallback<DeepTurnJapaneseNode> = (
   face: FaceNode,
   _w: _Terminal,
-): PartialDeepTurn => getDeepTurn(face.execute(), 1);
+): PartialDeepTurn => getDeepTurn(face.execute(), 2);
 
 const deepTurnSub: _FrameworkVisitorCallback<DeepTurnSubNode> = (
   face: FaceNode,
@@ -159,26 +159,26 @@ const deepTurnSub: _FrameworkVisitorCallback<DeepTurnSubNode> = (
 ): PartialDeepTurn => {
   _assertNodeIsStronglyTyped(face, "face");
   _assertNodeIsStronglyTyped(sub, "subscript");
-  return getDeepTurn(face.execute(), sub.execute() - 1);
+  return getDeepTurn(face.execute(), sub.execute());
 };
 const deepTurnFace_front: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
   _face: _Terminal,
-): PartialDeepTurn => getDeepTurn(CubeSide.Front, 1);
+): PartialDeepTurn => getDeepTurn(CubeSide.Front, 2);
 const deepTurnFace_up: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
   _face: _Terminal,
-): PartialDeepTurn => getDeepTurn(CubeSide.Top, 1);
+): PartialDeepTurn => getDeepTurn(CubeSide.Top, 2);
 const deepTurnFace_right: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
   _face: _Terminal,
-): PartialDeepTurn => getDeepTurn(CubeSide.Right, 1);
+): PartialDeepTurn => getDeepTurn(CubeSide.Right, 2);
 const deepTurnFace_back: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
   _face: _Terminal,
-): PartialDeepTurn => getDeepTurn(CubeSide.Back, 1);
+): PartialDeepTurn => getDeepTurn(CubeSide.Back, 2);
 const deepTurnFace_left: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
   _face: _Terminal,
-): PartialDeepTurn => getDeepTurn(CubeSide.Left, 1);
+): PartialDeepTurn => getDeepTurn(CubeSide.Left, 2);
 const deepTurnFace_down: _FrameworkVisitorCallback<DeepTurnFaceNode> = (
   _face: _Terminal,
-): PartialDeepTurn => getDeepTurn(CubeSide.Bottom, 1);
+): PartialDeepTurn => getDeepTurn(CubeSide.Bottom, 2);
 
 function getDeepTurn(sideId: CubeSide, depth: number): PartialDeepTurn {
   return {
@@ -190,20 +190,20 @@ function getDeepTurn(sideId: CubeSide, depth: number): PartialDeepTurn {
 
 const wholeCube_cubeOnR: _FrameworkVisitorCallback<WholeCubeNode> = (
   _axis: _Terminal,
-): CubeAxis => "Y";
+): CubeAxis => CubeAxis.Middle;
 const wholeCube_cubeOnU: _FrameworkVisitorCallback<WholeCubeNode> = (
   _axis: _Terminal,
-): CubeAxis => "X";
+): CubeAxis => CubeAxis.Equatorial;
 const wholeCube_cubeOnF: _FrameworkVisitorCallback<WholeCubeNode> = (
   _axis: _Terminal,
-): CubeAxis => "Z";
+): CubeAxis => CubeAxis.Standing;
 
 const slice_middle: _FrameworkVisitorCallback<SliceNode> = (
   _slice: _Terminal,
 ): Omit<ICubeRotateSliceAction, "rotationCount"> => {
   return {
     type: CubeActionType.RotateSlice,
-    axis: "Y",
+    axis: CubeAxis.Middle,
     direction: SliceDirection.Down,
     refSide: CubeSide.Front,
   };
@@ -213,7 +213,7 @@ const slice_equatorial: _FrameworkVisitorCallback<SliceNode> = (
 ): Omit<ICubeRotateSliceAction, "rotationCount"> => {
   return {
     type: CubeActionType.RotateSlice,
-    axis: "X",
+    axis: CubeAxis.Equatorial,
     direction: SliceDirection.Right,
     refSide: CubeSide.Left,
   };
@@ -223,7 +223,7 @@ const slice_standing: _FrameworkVisitorCallback<SliceNode> = (
 ): Omit<ICubeRotateSliceAction, "rotationCount"> => {
   return {
     type: CubeActionType.RotateSlice,
-    axis: "Z",
+    axis: CubeAxis.Standing,
     direction: SliceDirection.Up,
     refSide: CubeSide.Left,
   };

@@ -83,81 +83,225 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
   const base3x3Cube = getTestCube(3);
   const base5x5Cube = getTestCube(5);
 
-  const rot3x3XAxisLeft = rotateCubeInternalSlice(base3x3Cube, "X", 1, 1, 1);
-  const rot3x3XAxisRight = rotateCubeInternalSlice(base3x3Cube, "X", 1, 1, -1);
-  const rot3x3YAxisUp = rotateCubeInternalSlice(base3x3Cube, "Y", 1, 1, 1);
-  const rot3x3YAxisDown = rotateCubeInternalSlice(base3x3Cube, "Y", 1, 1, -1);
-  const rot3x3ZAxisUp = rotateCubeInternalSlice(base3x3Cube, "Z", 1, 1, 1);
-  const rot3x3ZAxisDown = rotateCubeInternalSlice(base3x3Cube, "Z", 1, 1, -1);
+  const rot3x3XAxisLeft = rotateCubeInternalSlice(
+    base3x3Cube,
+    CubeAxis.Equatorial,
+    1,
+    1,
+    1,
+  );
+  const rot3x3XAxisRight = rotateCubeInternalSlice(
+    base3x3Cube,
+    CubeAxis.Equatorial,
+    1,
+    1,
+    -1,
+  );
+  const rot3x3YAxisUp = rotateCubeInternalSlice(
+    base3x3Cube,
+    CubeAxis.Middle,
+    1,
+    1,
+    1,
+  );
+  const rot3x3YAxisDown = rotateCubeInternalSlice(
+    base3x3Cube,
+    CubeAxis.Middle,
+    1,
+    1,
+    -1,
+  );
+  const rot3x3ZAxisUp = rotateCubeInternalSlice(
+    base3x3Cube,
+    CubeAxis.Standing,
+    1,
+    1,
+    1,
+  );
+  const rot3x3ZAxisDown = rotateCubeInternalSlice(
+    base3x3Cube,
+    CubeAxis.Standing,
+    1,
+    1,
+    -1,
+  );
 
-  const rot5x5XAxisLeft1 = rotateCubeInternalSlice(base5x5Cube, "X", 1, 1, 1);
-  const rot5x5XAxisLeft1_2 = rotateCubeInternalSlice(base5x5Cube, "X", 1, 2, 1);
-  const rot5x5XAxisLeft2_3 = rotateCubeInternalSlice(base5x5Cube, "X", 2, 2, 1);
-  const rot5x5XAxisLeft3 = rotateCubeInternalSlice(base5x5Cube, "X", 3, 1, 1);
-  const rot5x5XAxisRight1 = rotateCubeInternalSlice(base5x5Cube, "X", 1, 1, -1);
+  const rot5x5XAxisLeft1 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Equatorial,
+    1,
+    1,
+    1,
+  );
+  const rot5x5XAxisLeft1_2 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Equatorial,
+    1,
+    2,
+    1,
+  );
+  const rot5x5XAxisLeft2_3 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Equatorial,
+    2,
+    2,
+    1,
+  );
+  const rot5x5XAxisLeft3 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Equatorial,
+    3,
+    1,
+    1,
+  );
+  const rot5x5XAxisRight1 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Equatorial,
+    1,
+    1,
+    -1,
+  );
   const rot5x5XAxisRight1_2 = rotateCubeInternalSlice(
     base5x5Cube,
-    "X",
+    CubeAxis.Equatorial,
     1,
     2,
     -1,
   );
   const rot5x5XAxisRight2_3 = rotateCubeInternalSlice(
     base5x5Cube,
-    "X",
+    CubeAxis.Equatorial,
     2,
     2,
     -1,
   );
-  const rot5x5XAxisRight3 = rotateCubeInternalSlice(base5x5Cube, "X", 3, 1, -1);
+  const rot5x5XAxisRight3 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Equatorial,
+    3,
+    1,
+    -1,
+  );
 
-  const rot5x5YAxisUp1 = rotateCubeInternalSlice(base5x5Cube, "Y", 1, 1, 1);
-  const rot5x5YAxisUp1_2 = rotateCubeInternalSlice(base5x5Cube, "Y", 1, 2, 1);
-  const rot5x5YAxisUp2_3 = rotateCubeInternalSlice(base5x5Cube, "Y", 2, 2, 1);
-  const rot5x5YAxisUp3 = rotateCubeInternalSlice(base5x5Cube, "Y", 3, 1, 1);
-  const rot5x5YAxisDown1 = rotateCubeInternalSlice(base5x5Cube, "Y", 1, 1, -1);
+  const rot5x5YAxisUp1 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Middle,
+    1,
+    1,
+    1,
+  );
+  const rot5x5YAxisUp1_2 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Middle,
+    1,
+    2,
+    1,
+  );
+  const rot5x5YAxisUp2_3 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Middle,
+    2,
+    2,
+    1,
+  );
+  const rot5x5YAxisUp3 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Middle,
+    3,
+    1,
+    1,
+  );
+  const rot5x5YAxisDown1 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Middle,
+    1,
+    1,
+    -1,
+  );
   const rot5x5YAxisDown1_2 = rotateCubeInternalSlice(
     base5x5Cube,
-    "Y",
+    CubeAxis.Middle,
     1,
     2,
     -1,
   );
   const rot5x5YAxisDown2_3 = rotateCubeInternalSlice(
     base5x5Cube,
-    "Y",
+    CubeAxis.Middle,
     2,
     2,
     -1,
   );
-  const rot5x5YAxisDown3 = rotateCubeInternalSlice(base5x5Cube, "Y", 3, 1, -1);
+  const rot5x5YAxisDown3 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Middle,
+    3,
+    1,
+    -1,
+  );
 
-  const rot5x5ZAxisUp1 = rotateCubeInternalSlice(base5x5Cube, "Z", 1, 1, 1);
-  const rot5x5ZAxisUp1_2 = rotateCubeInternalSlice(base5x5Cube, "Z", 1, 2, 1);
-  const rot5x5ZAxisUp2_3 = rotateCubeInternalSlice(base5x5Cube, "Z", 2, 2, 1);
-  const rot5x5ZAxisUp3 = rotateCubeInternalSlice(base5x5Cube, "Z", 3, 1, 1);
-  const rot5x5ZAxisDown1 = rotateCubeInternalSlice(base5x5Cube, "Z", 1, 1, -1);
+  const rot5x5ZAxisUp1 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Standing,
+    1,
+    1,
+    1,
+  );
+  const rot5x5ZAxisUp1_2 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Standing,
+    1,
+    2,
+    1,
+  );
+  const rot5x5ZAxisUp2_3 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Standing,
+    2,
+    2,
+    1,
+  );
+  const rot5x5ZAxisUp3 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Standing,
+    3,
+    1,
+    1,
+  );
+  const rot5x5ZAxisDown1 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Standing,
+    1,
+    1,
+    -1,
+  );
   const rot5x5ZAxisDown1_2 = rotateCubeInternalSlice(
     base5x5Cube,
-    "Z",
+    CubeAxis.Standing,
     1,
     2,
     -1,
   );
   const rot5x5ZAxisDown2_3 = rotateCubeInternalSlice(
     base5x5Cube,
-    "Z",
+    CubeAxis.Standing,
     2,
     2,
     -1,
   );
-  const rot5x5ZAxisDown3 = rotateCubeInternalSlice(base5x5Cube, "Z", 3, 1, -1);
+  const rot5x5ZAxisDown3 = rotateCubeInternalSlice(
+    base5x5Cube,
+    CubeAxis.Standing,
+    3,
+    1,
+    -1,
+  );
 
   // Get all of the actual test cases
   const tests: IRotateCubeSliceFromFaceTestCase[] = [
     // Side 1 is straightforward - it should work just like it says on the box
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "X", sideRef: CubeSide.Left },
+      { axis: CubeAxis.Equatorial, sideRef: CubeSide.Left },
       SliceDirection.Left,
       [
         [base3x3Cube, rot3x3XAxisLeft, rot3x3XAxisRight, 1, 1],
@@ -168,7 +312,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
       ],
     ),
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "Z", sideRef: CubeSide.Left },
+      { axis: CubeAxis.Standing, sideRef: CubeSide.Left },
       SliceDirection.Up,
       [
         [base3x3Cube, rot3x3ZAxisUp, rot3x3ZAxisDown, 1, 1],
@@ -180,7 +324,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
     ),
     // Side 2 is straightforward - it should work just like it says on the box
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "X", sideRef: CubeSide.Front },
+      { axis: CubeAxis.Equatorial, sideRef: CubeSide.Front },
       SliceDirection.Left,
       [
         [base3x3Cube, rot3x3XAxisLeft, rot3x3XAxisRight, 1, 1],
@@ -191,7 +335,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
       ],
     ),
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "Y", sideRef: CubeSide.Front },
+      { axis: CubeAxis.Middle, sideRef: CubeSide.Front },
       SliceDirection.Up,
       [
         [base3x3Cube, rot3x3YAxisUp, rot3x3YAxisDown, 1, 1],
@@ -203,7 +347,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
     ),
     // Side 3 has the vertical axis inverted
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "X", sideRef: CubeSide.Right },
+      { axis: CubeAxis.Equatorial, sideRef: CubeSide.Right },
       SliceDirection.Left,
       [
         [base3x3Cube, rot3x3XAxisLeft, rot3x3XAxisRight, 1, 1],
@@ -214,7 +358,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
       ],
     ),
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "Z", sideRef: CubeSide.Right },
+      { axis: CubeAxis.Standing, sideRef: CubeSide.Right },
       SliceDirection.Up,
       [
         [base3x3Cube, rot3x3ZAxisDown, rot3x3ZAxisUp, 1, 1],
@@ -226,7 +370,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
     ),
     // Side 4 has the vertical axis inverted
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "X", sideRef: CubeSide.Back },
+      { axis: CubeAxis.Equatorial, sideRef: CubeSide.Back },
       SliceDirection.Left,
       [
         [base3x3Cube, rot3x3XAxisLeft, rot3x3XAxisRight, 1, 1],
@@ -237,7 +381,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
       ],
     ),
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "Y", sideRef: CubeSide.Back },
+      { axis: CubeAxis.Middle, sideRef: CubeSide.Back },
       SliceDirection.Up,
       [
         [base3x3Cube, rot3x3YAxisDown, rot3x3YAxisUp, 1, 1],
@@ -249,7 +393,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
     ),
     // Side 5 is a little special in general
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "Z", sideRef: CubeSide.Top },
+      { axis: CubeAxis.Standing, sideRef: CubeSide.Top },
       SliceDirection.Left,
       // Z-left for us is Z-down for side 1
       [
@@ -261,7 +405,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
       ],
     ),
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "Y", sideRef: CubeSide.Top },
+      { axis: CubeAxis.Middle, sideRef: CubeSide.Top },
       SliceDirection.Up,
       // Y-up is the same as side 2
       [
@@ -274,7 +418,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
     ),
     // Side 6 is even more special
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "Z", sideRef: CubeSide.Bottom },
+      { axis: CubeAxis.Standing, sideRef: CubeSide.Bottom },
       SliceDirection.Left,
       // Z-left for us is Z-up for side 1, but it does have indices inverted
       [
@@ -286,7 +430,7 @@ function getTestCases(): (IRotateCubeSliceFromFaceTestCase & INamedTestCase)[] {
       ],
     ),
     ..._makeRotateCubeSliceFromFaceTestCase(
-      { axis: "Y", sideRef: CubeSide.Bottom },
+      { axis: CubeAxis.Middle, sideRef: CubeSide.Bottom },
       SliceDirection.Up,
       // Y-up is the same as side 2
       [
@@ -343,7 +487,7 @@ function _makeRotateCubeSliceFromFaceTestCase(
     default:
       forceNever(forwardRotation);
   }
-  const testCases: Omit<IRotateCubeSliceFromFaceTestCase, "name">[] = [];
+  const testCases: IRotateCubeSliceFromFaceTestCase[] = [];
   for (const [cube, expForward, expBack, sliceIndex, sliceSize] of cubes) {
     testCases.push(
       {

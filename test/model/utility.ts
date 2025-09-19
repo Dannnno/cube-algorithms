@@ -23,6 +23,8 @@ import {
 } from "../../src/model/cube";
 import {
   RotationAmount,
+  directionIsValidForFaceAndAxis,
+  getPerpendicularFaces,
   refocusCube,
   rotateCube,
   rotateCubeDeepTurn,
@@ -95,7 +97,18 @@ export function getTestCube(size: number, mutate: boolean = false): CubeData {
     rcf(
       rcf(
         rcf(
-          rcf(rcf(size > 2 ? rcs(rcs(rcs(cube, "X"), "Y"), "Z") : cube, 1), 2),
+          rcf(
+            rcf(
+              size > 2
+                ? rcs(
+                    rcs(rcs(cube, CubeAxis.Equatorial), CubeAxis.Middle),
+                    CubeAxis.Standing,
+                  )
+                : cube,
+              1,
+            ),
+            2,
+          ),
           3,
         ),
         4,
@@ -277,49 +290,7 @@ abstract class PuzzleCubeCommand<T extends CubeActionType>
     axis: CubeAxis,
     direction: SliceDirection,
   ): boolean {
-    // Don't allow a direction + face + axis combination that doesn't make sense
-    switch (face) {
-      case CubeSide.Front:
-      case CubeSide.Back:
-        switch (axis) {
-          case "X":
-            return this._isHorizontal(direction);
-          case "Y":
-            return this._isVertical(direction);
-          case "Z":
-            return false;
-        }
-      case CubeSide.Left:
-      case CubeSide.Right:
-        switch (axis) {
-          case "X":
-            return this._isHorizontal(direction);
-          case "Y":
-            return false;
-          case "Z":
-            return this._isVertical(direction);
-        }
-      case CubeSide.Top:
-      case CubeSide.Bottom:
-        switch (axis) {
-          case "X":
-            return false;
-          case "Y":
-            return this._isVertical(direction);
-          case "Z":
-            return this._isHorizontal(direction);
-        }
-    }
-  }
-
-  protected _isHorizontal(direction: SliceDirection): boolean {
-    return (
-      direction === SliceDirection.Left || direction === SliceDirection.Right
-    );
-  }
-
-  protected _isVertical(direction: SliceDirection): boolean {
-    return !this._isHorizontal(direction);
+    return directionIsValidForFaceAndAxis(face, axis, direction);
   }
 
   protected _checkSide(
@@ -512,20 +483,7 @@ class RotateSliceFromFaceCommand extends PuzzleCubeCommand<CubeActionType.Rotate
   ): void {
     // When you rotate a given slice it should never touch the perpendicular faces
     const size = model.cubeSize;
-    let perpendicular: [CubeSide, CubeSide];
-    switch (this.axis) {
-      case "X":
-        perpendicular = [CubeSide.Top, CubeSide.Bottom];
-        break;
-      case "Y":
-        perpendicular = [CubeSide.Left, CubeSide.Right];
-        break;
-      case "Z":
-        perpendicular = [CubeSide.Front, CubeSide.Back];
-        break;
-      default:
-        forceNever(this.axis);
-    }
+    const perpendicular = getPerpendicularFaces(this.axis);
 
     for (const side of perpendicular) {
       this._checkSide(size, side, newCube, originalCube);
@@ -619,7 +577,11 @@ export const fcCubeSides = fc.constantFrom(
   CubeSide.Bottom,
   CubeSide.Top,
 );
-export const fcCubeAxes = fc.constantFrom("X", "Y", "Z");
+export const fcCubeAxes = fc.constantFrom(
+  CubeAxis.Equatorial,
+  CubeAxis.Middle,
+  CubeAxis.Standing,
+);
 export const fcCubeDirections = fc.constantFrom(
   SliceDirection.Down,
   SliceDirection.Up,
@@ -829,7 +791,11 @@ export function expectSideId(sideId: CubeSide, label: string): void {
 }
 
 export function expectAxis(axis: CubeAxis, label: string): void {
-  expect(axis, `${label}.axis`).toBeOneOf(["X", "Y", "Z"]);
+  expect(axis, `${label}.axis`).toBeOneOf([
+    CubeAxis.Equatorial,
+    CubeAxis.Middle,
+    CubeAxis.Standing,
+  ]);
 }
 
 export function expectDirection(

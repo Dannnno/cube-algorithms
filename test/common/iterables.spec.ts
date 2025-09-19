@@ -299,8 +299,12 @@ describe("icross", () => {
         ).toBe(expectedReturnValue);
         expect(timesCalled, "Times Called").toBe(expectedIterationCount);
       }),
-      // Counterexample: [{"data":[null,null],"ret":0}]
-      { seed: 1317239234, path: "39:1:0:0:1:2", endOnFailure: true },
+      {
+        examples: [
+          // { seed: 1317239234, path: "39:1:0:0:1:2", endOnFailure: true },
+          [{ data: [null, null], ret: LoopStatus.StopLooping }],
+        ],
+      },
     ));
 });
 

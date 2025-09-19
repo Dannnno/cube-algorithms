@@ -67,7 +67,7 @@ describe("rotateCubeInternalSlice", () => {
               numRotations,
             ),
           ).toThrowError(
-            `Assertion of "Offset must be in range [1, ${cubeSize - 2}]" [false] failed`,
+            `Assertion of "sliceStart ∈ [1, ${cubeSize - 2}]" [false] failed`,
           );
         },
       ),
@@ -77,11 +77,11 @@ describe("rotateCubeInternalSlice", () => {
     fc.assert(
       fc.property(
         fc
-          .tuple(fcSliceStarts, fcCubeSizes, fc.integer())
+          .tuple(fcSliceStarts, fcCubeSizes, fc.integer({ min: 1 }))
           .filter(
             ([offsetStart, size, numSlices]) =>
               isBoundedInteger(offsetStart, 1, size - 2)
-              && !isBoundedInteger(numSlices, 1, size - 1 - offsetStart),
+              && !isBoundedInteger(offsetStart + numSlices, 2, size - 1),
           ),
         fc.boolean(),
         fcCubeAxes,
@@ -97,7 +97,7 @@ describe("rotateCubeInternalSlice", () => {
               numRotations,
             ),
           ).toThrowError(
-            `Assertion of "Number of slices must be in range [1, ${cubeSize - 1 - offsetStart}]" [false] failed`,
+            `Assertion of "sliceEnd ∈ [2, ${cubeSize - 1}]" [false] failed`,
           );
         },
       ),
@@ -125,7 +125,7 @@ function getTestCases(): (IRotateCubeSliceTestCase & INamedTestCase)[] {
 
   const tests: IRotateCubeSliceTestCase[] = [
     {
-      axis: "X",
+      axis: CubeAxis.Equatorial,
       sliceStart: 1,
       sliceSize: 1,
       rotation: RotationAmount.CounterClockwise,
@@ -140,7 +140,7 @@ function getTestCases(): (IRotateCubeSliceTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "Z",
+      axis: CubeAxis.Standing,
       sliceStart: 1,
       sliceSize: 1,
       rotation: RotationAmount.CounterClockwise,
@@ -155,7 +155,7 @@ function getTestCases(): (IRotateCubeSliceTestCase & INamedTestCase)[] {
       ],
     },
     {
-      axis: "Y",
+      axis: CubeAxis.Middle,
       sliceStart: 1,
       sliceSize: 1,
       rotation: RotationAmount.CounterClockwise,

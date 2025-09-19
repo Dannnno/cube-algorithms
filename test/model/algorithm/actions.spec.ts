@@ -11,7 +11,7 @@ import {
 import { _getCleanAlgorithmSteps } from "../../../src/model/algorithm";
 import { _getActionSemantics } from "../../../src/model/algorithm/actions";
 import { _getAlgorithmParser } from "../../../src/model/algorithm/parser";
-import { CubeSide, SliceDirection } from "../../../src/model/cube";
+import { CubeAxis, CubeSide, SliceDirection } from "../../../src/model/cube";
 import { RotationAmount } from "../../../src/model/geometry";
 import {
   CubeCommands,
@@ -59,19 +59,19 @@ describe("_getActionSemantics", () => {
     const actions: Omit<ICubeRotateSliceAction, "rotationCount">[] = [
       {
         type: CubeActionType.RotateSlice,
-        axis: "Y",
+        axis: CubeAxis.Middle,
         refSide: CubeSide.Front,
         direction: SliceDirection.Down,
       },
       {
         type: CubeActionType.RotateSlice,
-        axis: "X",
+        axis: CubeAxis.Equatorial,
         refSide: CubeSide.Left,
         direction: SliceDirection.Right,
       },
       {
         type: CubeActionType.RotateSlice,
-        axis: "Z",
+        axis: CubeAxis.Standing,
         refSide: CubeSide.Left,
         direction: SliceDirection.Up,
       },
@@ -104,7 +104,14 @@ describe("_getActionSemantics", () => {
     // NOTE THE DIFFERENCE: algorithm terminology is different from the axis
     // labels I picked when I started developing this, and its too much work to
     // change it now
-    const axes = ["Y", "X", "Z", "Y", "X", "Z"];
+    const axes = [
+      CubeAxis.Middle,
+      CubeAxis.Equatorial,
+      CubeAxis.Standing,
+      CubeAxis.Middle,
+      CubeAxis.Equatorial,
+      CubeAxis.Standing,
+    ];
     const cubeRot = [
       RotationAmount.Clockwise,
       RotationAmount.Halfway,
@@ -138,9 +145,9 @@ describe("_getActionSemantics", () => {
   });
 
   describe("Deep Turns (Exhaustive)", () => {
-    describe("3x3 Deep Turns", () => {
+    describe("3x3 Notation", () => {
       const tests = _crossAlgSteps(["f", "u", "r", "b", "l", "d"]);
-      const expectedActions = _crossDeepFaceActions([1]);
+      const expectedActions = _crossDeepFaceActions([2]);
       const cases = _getTestCases(tests, expectedActions);
 
       it.each(cases)("Should get an action for $step", ({ step, action }) => {
@@ -163,9 +170,9 @@ describe("_getActionSemantics", () => {
         ));
     });
 
-    describe("3x3 Deep Turns - Japanese Notation", () => {
+    describe("3x3 Japanese Notation", () => {
       const tests = _crossAlgSteps(["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"]);
-      const expectedActions = _crossDeepFaceActions([1]);
+      const expectedActions = _crossDeepFaceActions([2]);
       const cases = _getTestCases(tests, expectedActions);
 
       it.each(cases)("Should get an action for $step", ({ step, action }) => {
@@ -188,14 +195,14 @@ describe("_getActionSemantics", () => {
         ));
     });
 
-    describe("4x4 Deep Turns LaTeX Subscripts", () => {
+    describe("LaTeX Subscript Notation", () => {
       const subscripts = [2, 3, 4, 5];
       const tests = _crossAlgSteps(
         cross(["F", "U", "R", "B", "L", "D"], subscripts).map(
           ([face, sub]) => `${face}_${sub}`,
         ),
       );
-      const expectedActions = _crossDeepFaceActions(subscripts.map(v => v - 1));
+      const expectedActions = _crossDeepFaceActions(subscripts);
       const cases = _getTestCases(tests, expectedActions);
 
       it.each(cases)("Should get an action for $step", ({ step, action }) => {
@@ -226,14 +233,14 @@ describe("_getActionSemantics", () => {
         ));
     });
 
-    describe("4x4 Deep Turns Unicode Subscripts", () => {
+    describe("Unicode Subscript Notation", () => {
       const subscripts = [2, 3, 4, 5];
       const tests = _crossAlgSteps(
         cross(["F", "U", "R", "B", "L", "D"], subscripts).map(
           ([face, sub]) => `${face}${String.fromCodePoint(8320 + sub)}`, // \u2080 === 8320 in base10
         ),
       );
-      const expectedActions = _crossDeepFaceActions(subscripts.map(v => v - 1));
+      const expectedActions = _crossDeepFaceActions(subscripts);
       const cases = _getTestCases(tests, expectedActions);
 
       it.each(cases)("Should get an action for $step", ({ step, action }) => {
@@ -264,14 +271,14 @@ describe("_getActionSemantics", () => {
         ));
     });
 
-    describe("5x5 Deep Turns Prefixed", () => {
+    describe("Prefixed Japanese Notation", () => {
       const subscripts = [3, 4, 5];
       const tests = _crossAlgSteps(
         cross(["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"], subscripts).map(
           ([face, sub]) => `${sub}${face}`,
         ),
       );
-      const expectedActions = _crossDeepFaceActions(subscripts.map(v => v - 1));
+      const expectedActions = _crossDeepFaceActions(subscripts);
       const cases = _getTestCases(tests, expectedActions);
 
       it.each(cases)("Should get an action for $step", ({ step, action }) => {

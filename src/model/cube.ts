@@ -19,10 +19,19 @@ export const enum CubeSide {
   Top = 5,
   Bottom = 6,
 }
+
 /**
  * An internal axis of the cube
  */
-export type CubeAxis = "X" | "Y" | "Z";
+export const enum CubeAxis {
+  Middle = "Y",
+  Y = "Y",
+  Equatorial = "X",
+  X = "X",
+  Standing = "Z",
+  Z = "Z",
+}
+
 /**
  * The direction to rotate a face
  */
@@ -32,6 +41,7 @@ export enum FaceRotationDirection {
   /** Rotate the face counter-clockwise */
   CounterClockwise = "CCW",
 }
+
 /**
  * The direction to rotate an internal layer (slice)
  */
@@ -45,18 +55,22 @@ export enum SliceDirection {
   /** Rotate the face to the right, i.e. towards col N */
   Right = "Right",
 }
+
 /**
  * The value at a given spot in the cube
  */
 export type CubeCellValue = 1 | 2 | 3 | 4 | 5 | 6;
+
 /**
  * Data representing a side of a cube
  */
 export type CubeSideData = CubeCellValue[];
+
 /**
  * A full cube (i.e. 6-sided shape)
  */
 export type CubeData = Tuple<CubeSideData, 6>;
+
 /**
  * An action to take on each side of a cube
  */
@@ -69,6 +83,7 @@ export type PerSideCallback = {
    */
   (sideIx: CubeSide, data: DeepReadonly<CubeSideData>): LoopStatus | void;
 };
+
 /**
  * An action to take on each cell on a side of a cube
  */
@@ -92,6 +107,7 @@ export function assertIsValidCubeCell(
 ): asserts val is CubeCellValue {
   assert(isBoundedInteger(val, 1, 6));
 }
+
 /**
  * Assert that a cube is well-formed
  * @param cubeData The cube to check

@@ -230,7 +230,7 @@ export const RotateCubeButtonContainer: React.FC<
       <div className={`${rotateCubeButton} ${zUp}`}>
         <RotateWholeCubeButton
           dispatch={dispatch}
-          axis="Z"
+          axis={CubeAxis.Standing}
           direction={SliceDirection.Up}
           shortcut="Ctrl+Alt+Q"
         />
@@ -238,7 +238,7 @@ export const RotateCubeButtonContainer: React.FC<
       <div className={`${rotateCubeButton} ${up}`}>
         <RotateWholeCubeButton
           dispatch={dispatch}
-          axis="Y"
+          axis={CubeAxis.Middle}
           direction={SliceDirection.Up}
           shortcut="Ctrl+Alt+W"
         />
@@ -246,7 +246,7 @@ export const RotateCubeButtonContainer: React.FC<
       <div className={`${rotateCubeButton} ${left}`}>
         <RotateWholeCubeButton
           dispatch={dispatch}
-          axis="X"
+          axis={CubeAxis.Equatorial}
           direction={SliceDirection.Left}
           shortcut="Ctrl+Alt+A"
         />
@@ -254,7 +254,7 @@ export const RotateCubeButtonContainer: React.FC<
       <div className={`${rotateCubeButton} ${right}`}>
         <RotateWholeCubeButton
           dispatch={dispatch}
-          axis="X"
+          axis={CubeAxis.Equatorial}
           direction={SliceDirection.Right}
           shortcut="Ctrl+Alt+D"
         />
@@ -262,7 +262,7 @@ export const RotateCubeButtonContainer: React.FC<
       <div className={`${rotateCubeButton} ${down}`}>
         <RotateWholeCubeButton
           dispatch={dispatch}
-          axis="Y"
+          axis={CubeAxis.Middle}
           direction={SliceDirection.Down}
           shortcut="Ctrl+Alt+S"
         />
@@ -270,7 +270,7 @@ export const RotateCubeButtonContainer: React.FC<
       <div className={`${rotateCubeButton} ${zDown}`}>
         <RotateWholeCubeButton
           dispatch={dispatch}
-          axis="Z"
+          axis={CubeAxis.Standing}
           direction={SliceDirection.Down}
           shortcut="Ctrl+Alt+E"
         />

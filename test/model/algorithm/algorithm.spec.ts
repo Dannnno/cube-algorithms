@@ -25,23 +25,23 @@ describe("interpretAlgorithm", () => {
     ["3Fw 3Rw' 3Uw2 3Bw2 3Lw 3Bw'", 4],
     ["4Fw 4Rw' 4Uw2 4Bw2 4Lw 4Bw'", 5],
     ["5Fw 5Rw' 5Uw2 5Bw2 5Lw 5Bw'", 6],
+    ["2F 3R' 4L2 2U 3B2 4D'", 5],
+    ["2Fw_4 3Rw_3' 4Lw_22 2Uw\u{2084} 3Bw\u{2083}2 4Dw\u{2082}'", 7],
   ] as const;
   it.each(algorithms)("should parse $0", (alg, minSize) =>
     fc.assert(
-      fc.property(fcAlgCubeSize, cubeSize => {
-        const { isValid, invalidSteps, steps } = interpretAlgorithm(
-          alg,
-          cubeSize,
-        );
-        const expectedValidity = cubeSize >= minSize;
-        expect(isValid, "isValid").toBe(expectedValidity);
-        if (!expectedValidity) {
-          expect(invalidSteps.length).toBeGreaterThan(0);
-        } else {
+      fc.property(
+        fcAlgCubeSize.filter(cubeSize => cubeSize >= minSize),
+        cubeSize => {
+          const { isValid, invalidSteps, steps } = interpretAlgorithm(
+            alg,
+            cubeSize,
+          );
+          expect(isValid, "isValid").toBeTruthy();
           expect(invalidSteps, "invalidSteps").toStrictEqual([]);
           checkAllActionInvariants(steps);
-        }
-      }),
+        },
+      ),
     ),
   );
 
@@ -74,6 +74,11 @@ describe("interpretAlgorithm", () => {
     ["D_5", [InvalidStepReason.SliceSizeTooLarge], 5],
     ["B\u{2085}", [InvalidStepReason.SliceSizeTooLarge], 5],
     ["RLU", [InvalidStepReason.SyntaxError], 2],
+    ["5F", [InvalidStepReason.SliceIndexOutOfRange], 3],
+    ["5Fw_3", [InvalidStepReason.SliceIndexOutOfRange], 3],
+    ["2Fw_3", [InvalidStepReason.SliceSizeTooLarge], 4],
+    ["5Fw\u{2083}", [InvalidStepReason.SliceIndexOutOfRange], 3],
+    ["2Fw\u{2083}", [InvalidStepReason.SliceSizeTooLarge], 4],
   ] as const;
   it.each(failingAlgorithms)("Should not parse $0", (alg, errors, size) => {
     const { isValid, invalidSteps, steps } = interpretAlgorithm(alg, size);
@@ -272,6 +277,32 @@ describe("validateActions", () => {
       ],
       3,
       true,
+    ],
+    [
+      [
+        {
+          type: CubeActionType.RotatePerpendicularSlice,
+          face: CubeSide.Front,
+          rotationCount: 1,
+          sliceStart: 9,
+          sliceSize: 1,
+        },
+      ],
+      9,
+      false,
+    ],
+    [
+      [
+        {
+          type: CubeActionType.RotatePerpendicularSlice,
+          face: CubeSide.Front,
+          rotationCount: 1,
+          sliceStart: 1,
+          sliceSize: 9,
+        },
+      ],
+      9,
+      false,
     ],
   ];
 

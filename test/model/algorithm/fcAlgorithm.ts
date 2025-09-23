@@ -39,14 +39,43 @@ export const fcAlgDeepTurnJapaneseBigCube = fc
   .tuple(
     fcAlgDeepTurnJapanese,
     fc.constantFrom(
-      { sub: 3, minSize: 4 },
-      { sub: 4, minSize: 5 },
-      { sub: 5, minSize: 6 },
+      { pre: 3, minSize: 4 },
+      { pre: 4, minSize: 5 },
+      { pre: 5, minSize: 6 },
     ),
   )
-  .map(([{ step }, { sub, minSize }]) => ({
-    step: `${sub}${step}`,
+  .map(([{ step }, { pre, minSize }]) => ({
+    step: `${pre}${step}`,
     minSize,
+  }));
+
+export const fcAlgDeepSlice = fc
+  .tuple(
+    fcAlgCubeFace,
+    fc.constantFrom(
+      { pre: 2, minSize: 3 },
+      { pre: 3, minSize: 4 },
+      { pre: 4, minSize: 5 },
+      { pre: 5, minSize: 6 },
+    ),
+  )
+  .map(([{ step }, { pre, minSize }]) => ({ step: `${pre}${step}`, minSize }));
+
+export const fcAlgDeepSliceRange = fc
+  .tuple(
+    fc.constantFrom(2, 3, 4, 5),
+    fcAlgDeepTurnJapanese,
+    fc
+      .tuple(fc.constantFrom("unicode", "latex"), fc.constantFrom(2, 3, 4, 5))
+      .map(([mode, sub]) =>
+        mode === "unicode"
+          ? { sub: String.fromCodePoint(8320 + sub), val: sub }
+          : { sub: `_${sub}`, val: sub },
+      ),
+  )
+  .map(([pre, { step }, { sub, val }]) => ({
+    step: `${pre}${step}${sub}`,
+    minSize: val + pre,
   }));
 
 export const fcAlgCubeSlice = fc
@@ -69,6 +98,8 @@ export const fcAlgMove = fc
       fcAlgDeepTurnJapanese,
       fcAlgDeepTurnBigCube,
       fcAlgDeepTurnJapaneseBigCube,
+      fcAlgDeepSlice,
+      fcAlgDeepSliceRange,
     ),
     fcAlgRotation,
   )

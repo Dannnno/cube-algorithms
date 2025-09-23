@@ -275,3 +275,27 @@ export function getPerpendicularFaces(axis: CubeAxis): [CubeSide, CubeSide] {
       forceNever(axis);
   }
 }
+
+/**
+ * Get the face opposite to a specified one
+ * @param face The current face
+ * @returns The opposite face
+ */
+export function getOppositeFace(face: CubeSide): CubeSide {
+  switch (face) {
+    case CubeSide.Front:
+      return CubeSide.Back;
+    case CubeSide.Back:
+      return CubeSide.Front;
+    case CubeSide.Left:
+      return CubeSide.Right;
+    case CubeSide.Right:
+      return CubeSide.Left;
+    case CubeSide.Top:
+      return CubeSide.Bottom;
+    case CubeSide.Bottom:
+      return CubeSide.Top;
+    default:
+      forceNever(face);
+  }
+}

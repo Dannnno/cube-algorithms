@@ -6,6 +6,7 @@ import {
   CubeActions,
   ICubeRotateFaceAction,
   ICubeRotateFaceDeepAction,
+  ICubeRotatePerpendicularSliceAction,
   ICubeRotateSliceAction,
 } from "../../../src/components/cubes";
 import { _getCleanAlgorithmSteps } from "../../../src/model/algorithm";
@@ -17,6 +18,7 @@ import {
   CubeCommands,
   checkAllActionInvariants,
   fcCompareActionWithActual,
+  flattenAlgorithmParts,
 } from "../utility";
 import { fcAlgCubeSize, fcAlgorithmText } from "./fcAlgorithm";
 
@@ -198,9 +200,10 @@ describe("_getActionSemantics", () => {
     describe("LaTeX Subscript Notation", () => {
       const subscripts = [2, 3, 4, 5];
       const tests = _crossAlgSteps(
-        cross(["F", "U", "R", "B", "L", "D"], subscripts).map(
-          ([face, sub]) => `${face}_${sub}`,
-        ),
+        cross(
+          ["F", "U", "R", "B", "L", "D"],
+          subscripts.map(sub => `_${sub}`),
+        ).map(flattenAlgorithmParts),
       );
       const expectedActions = _crossDeepFaceActions(subscripts);
       const cases = _getTestCases(tests, expectedActions);
@@ -221,8 +224,7 @@ describe("_getActionSemantics", () => {
               )
               .filter(
                 ([caseIx, cubeSize]) =>
-                  (cases[caseIx].action as ICubeRotateFaceDeepAction).depth
-                  < cubeSize - 1,
+                  !sliceIsTooLarge(cubeSize, 0, cases[caseIx].action.depth),
               ),
             fc.commands(CubeCommands, { size: "xsmall" }),
             ([caseIx, cubeSize], cmds) => {
@@ -236,9 +238,10 @@ describe("_getActionSemantics", () => {
     describe("Unicode Subscript Notation", () => {
       const subscripts = [2, 3, 4, 5];
       const tests = _crossAlgSteps(
-        cross(["F", "U", "R", "B", "L", "D"], subscripts).map(
-          ([face, sub]) => `${face}${String.fromCodePoint(8320 + sub)}`, // \u2080 === 8320 in base10
-        ),
+        cross(
+          ["F", "U", "R", "B", "L", "D"],
+          subscripts.map(sub => String.fromCodePoint(8320 + sub)), // \u2080 === 8320 in base10
+        ).map(flattenAlgorithmParts),
       );
       const expectedActions = _crossDeepFaceActions(subscripts);
       const cases = _getTestCases(tests, expectedActions);
@@ -259,8 +262,7 @@ describe("_getActionSemantics", () => {
               )
               .filter(
                 ([caseIx, cubeSize]) =>
-                  (cases[caseIx].action as ICubeRotateFaceDeepAction).depth
-                  < cubeSize - 1,
+                  !sliceIsTooLarge(cubeSize, 0, cases[caseIx].action.depth),
               ),
             fc.commands(CubeCommands, { size: "xsmall" }),
             ([caseIx, cubeSize], cmds) => {
@@ -272,13 +274,13 @@ describe("_getActionSemantics", () => {
     });
 
     describe("Prefixed Japanese Notation", () => {
-      const subscripts = [3, 4, 5];
+      const prefixes = [3, 4, 5];
       const tests = _crossAlgSteps(
-        cross(["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"], subscripts).map(
-          ([face, sub]) => `${sub}${face}`,
+        cross(["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"], prefixes).map(
+          ([face, pre]) => `${pre}${face}`,
         ),
       );
-      const expectedActions = _crossDeepFaceActions(subscripts);
+      const expectedActions = _crossDeepFaceActions(prefixes);
       const cases = _getTestCases(tests, expectedActions);
 
       it.each(cases)("Should get an action for $step", ({ step, action }) => {
@@ -297,8 +299,213 @@ describe("_getActionSemantics", () => {
               )
               .filter(
                 ([caseIx, cubeSize]) =>
-                  (cases[caseIx].action as ICubeRotateFaceDeepAction).depth
-                  < cubeSize - 1,
+                  !sliceIsTooLarge(cubeSize, 0, cases[caseIx].action.depth),
+              ),
+            fc.commands(CubeCommands, { size: "xsmall" }),
+            ([caseIx, cubeSize], cmds) => {
+              const { step, action } = cases[caseIx];
+              fcCompareActionWithActual(cubeSize, cmds, step, [action]);
+            },
+          ),
+        ));
+    });
+  });
+
+  describe("Deep Slices (Exhaustive)", () => {
+    describe("Deep Slice", () => {
+      const cubeFaces = [
+        CubeSide.Front,
+        CubeSide.Top,
+        CubeSide.Right,
+        CubeSide.Back,
+        CubeSide.Left,
+        CubeSide.Bottom,
+      ];
+      const faces = ["F", "U", "R", "B", "L", "D"];
+      const prefix = [2, 3, 4, 5];
+
+      const tests = _crossAlgSteps(
+        cross(prefix, faces).map(flattenAlgorithmParts),
+      );
+      const expectedActions: ICubeRotatePerpendicularSliceAction[] = cross(
+        cross(prefix, cubeFaces).map(
+          ([prefix, face]) =>
+            ({
+              type: CubeActionType.RotatePerpendicularSlice,
+              face,
+              sliceStart: prefix - 1,
+              sliceSize: 1,
+            }) as const,
+        ),
+        [
+          RotationAmount.Clockwise,
+          RotationAmount.Halfway,
+          RotationAmount.CounterClockwise,
+        ],
+      ).map(([act, rotationCount]) => ({ ...act, rotationCount }));
+      const cases = _getTestCases(tests, expectedActions);
+
+      it.each(cases)("Should get an action for $step", ({ step, action }) => {
+        const [actualActions, ..._] = _parseAndExecute(step);
+        expect(actualActions).toStrictEqual([action]);
+        checkAllActionInvariants(actualActions);
+      });
+
+      it("Should be equivalent to an action", () =>
+        fc.assert(
+          fc.property(
+            fc
+              .tuple(
+                fc.nat({ max: cases.length - 1 }),
+                fcAlgCubeSize.filter(size => size > 2),
+              )
+              .filter(
+                ([caseIx, cubeSize]) =>
+                  !sliceIsTooLarge(
+                    cubeSize,
+                    cases[caseIx].action.sliceStart,
+                    cases[caseIx].action.sliceSize,
+                  ),
+              ),
+            fc.commands(CubeCommands, { size: "xsmall" }),
+            ([caseIx, cubeSize], cmds) => {
+              const { step, action } = cases[caseIx];
+              fcCompareActionWithActual(cubeSize, cmds, step, [action]);
+            },
+          ),
+        ));
+    });
+
+    describe("Deep Slice Japanese Notation LaTeX Subscripts", () => {
+      const cubeFaces = [
+        CubeSide.Front,
+        CubeSide.Top,
+        CubeSide.Right,
+        CubeSide.Back,
+        CubeSide.Left,
+        CubeSide.Bottom,
+      ];
+      const faces = ["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"];
+      const prefix = [2, 3, 4, 5];
+      const subscripts = [2, 3, 4, 5];
+      const tests = _crossAlgSteps(
+        cross(
+          cross(prefix, faces),
+          subscripts.map(sub => `_${sub}`),
+        ).map(flattenAlgorithmParts),
+      );
+      const expectedActions: ICubeRotatePerpendicularSliceAction[] = cross(
+        cross(
+          cross(prefix, cubeFaces).map(
+            ([pre, face]) =>
+              ({
+                type: CubeActionType.RotatePerpendicularSlice,
+                face,
+                sliceStart: pre - 1,
+                sliceSize: -1,
+              }) as const,
+          ),
+          subscripts,
+        ).map(([act, sub]) => ({ ...act, sliceSize: sub })),
+        [
+          RotationAmount.Clockwise,
+          RotationAmount.Halfway,
+          RotationAmount.CounterClockwise,
+        ],
+      ).map(([act, rotationCount]) => ({ ...act, rotationCount }));
+      const cases = _getTestCases(tests, expectedActions);
+
+      it.each(cases)("Should get an action for $step", ({ step, action }) => {
+        const [actualActions, ..._] = _parseAndExecute(step);
+        expect(actualActions).toStrictEqual([action]);
+        checkAllActionInvariants(actualActions);
+      });
+
+      it("Should be equivalent to an action", () =>
+        fc.assert(
+          fc.property(
+            fc
+              .tuple(
+                fc.nat({ max: cases.length - 1 }),
+                fcAlgCubeSize.filter(size => size > 2),
+              )
+              .filter(
+                ([caseIx, cubeSize]) =>
+                  !sliceIsTooLarge(
+                    cubeSize,
+                    cases[caseIx].action.sliceStart,
+                    cases[caseIx].action.sliceSize,
+                  ),
+              ),
+            fc.commands(CubeCommands, { size: "xsmall" }),
+            ([caseIx, cubeSize], cmds) => {
+              const { step, action } = cases[caseIx];
+              fcCompareActionWithActual(cubeSize, cmds, step, [action]);
+            },
+          ),
+        ));
+    });
+
+    describe("Deep Slice Japanese Notation Unicode Subscripts", () => {
+      const cubeFaces = [
+        CubeSide.Front,
+        CubeSide.Top,
+        CubeSide.Right,
+        CubeSide.Back,
+        CubeSide.Left,
+        CubeSide.Bottom,
+      ];
+      const faces = ["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"];
+      const prefix = [2, 3, 4, 5];
+      const subscripts = [2, 3, 4, 5];
+      const tests = _crossAlgSteps(
+        cross(
+          cross(prefix, faces),
+          subscripts.map(sub => String.fromCodePoint(8320 + sub)),
+        ).map(flattenAlgorithmParts),
+      );
+      const expectedActions: ICubeRotatePerpendicularSliceAction[] = cross(
+        cross(
+          cross(prefix, cubeFaces).map(
+            ([pre, face]) =>
+              ({
+                type: CubeActionType.RotatePerpendicularSlice,
+                face,
+                sliceStart: pre - 1,
+                sliceSize: -1,
+              }) as const,
+          ),
+          subscripts,
+        ).map(([act, sub]) => ({ ...act, sliceSize: sub })),
+        [
+          RotationAmount.Clockwise,
+          RotationAmount.Halfway,
+          RotationAmount.CounterClockwise,
+        ],
+      ).map(([act, rotationCount]) => ({ ...act, rotationCount }));
+      const cases = _getTestCases(tests, expectedActions);
+
+      it.each(cases)("Should get an action for $step", ({ step, action }) => {
+        const [actualActions, ..._] = _parseAndExecute(step);
+        expect(actualActions).toStrictEqual([action]);
+        checkAllActionInvariants(actualActions);
+      });
+
+      it("Should be equivalent to an action", () =>
+        fc.assert(
+          fc.property(
+            fc
+              .tuple(
+                fc.nat({ max: cases.length - 1 }),
+                fcAlgCubeSize.filter(size => size > 2),
+              )
+              .filter(
+                ([caseIx, cubeSize]) =>
+                  !sliceIsTooLarge(
+                    cubeSize,
+                    cases[caseIx].action.sliceStart,
+                    cases[caseIx].action.sliceSize,
+                  ),
               ),
             fc.commands(CubeCommands, { size: "xsmall" }),
             ([caseIx, cubeSize], cmds) => {
@@ -320,18 +527,18 @@ function _parseAndExecute(algorithm: string): [CubeActions[], string[]] {
   return [result, _getCleanAlgorithmSteps(algorithm)];
 }
 
-function _getTestCases(
+function _getTestCases<T extends CubeActions>(
   steps: readonly string[],
-  expected: readonly CubeActions[],
-): { step: string; action: CubeActions }[] {
-  const result: { step: string; action: CubeActions }[] = [];
+  expected: readonly T[],
+): { step: string; action: T }[] {
+  const result: { step: string; action: T }[] = [];
   zip(steps, expected, (step, action) => result.push({ step, action }));
   return result;
 }
 
 function _crossAlgSteps(steps: readonly string[]): string[] {
   const rotations = ["", "2", "'"];
-  return cross(steps, rotations).map(([step, rot]) => `${step}${rot}`);
+  return cross(steps, rotations).map(flattenAlgorithmParts);
 }
 
 function _crossFaceActions(
@@ -400,4 +607,12 @@ function _crossSliceActions(
     ...slice,
     rotationCount,
   }));
+}
+
+function sliceIsTooLarge(
+  cubeSize: number,
+  sliceStart: number,
+  sliceSize: number,
+): boolean {
+  return sliceStart > cubeSize - 2 || sliceStart + sliceSize > cubeSize - 1;
 }

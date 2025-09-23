@@ -13,6 +13,7 @@ import {
   rotateCubeFace,
   rotateCubeFromFace,
   rotateCubeSliceFromFace,
+  rotatePerpendicularSlice,
 } from "@model/geometry";
 import React, { useMemo, useReducer } from "react";
 
@@ -32,6 +33,8 @@ export const enum CubeActionType {
    * Rotate an internal slice
    */
   RotateSlice = "RotateSlice",
+  /** Rotate an internal slice along the axis that is perpendicular to the face */
+  RotatePerpendicularSlice = "RotatePerpendicularSlice",
   /**
    * Reset the cube to it's default shape and layout
    */
@@ -98,6 +101,19 @@ export interface ICubeRotateSliceAction
   readonly refSide: CubeSide;
 }
 
+/** Deeply rotate a slice */
+export interface ICubeRotatePerpendicularSliceAction
+  extends IActionBase<CubeActionType.RotatePerpendicularSlice> {
+  /** The face we're facing  */
+  readonly face: CubeSide;
+  /** The slice to start rotating at */
+  readonly sliceStart: number;
+  /** How many slices to rotate */
+  readonly sliceSize: number;
+  /** How many times to rotate that slice clockwise */
+  readonly rotationCount: number;
+}
+
 type CubeResetCubeAction = IActionBase<CubeActionType.ResetCube>;
 
 interface ICubeResizeAction extends IActionBase<CubeActionType.ResizeCube> {
@@ -134,6 +150,7 @@ export type CubeActions =
   | ICubeRotateFaceAction
   | ICubeRotateFaceDeepAction
   | ICubeRotateSliceAction
+  | ICubeRotatePerpendicularSliceAction
   | CubeResetCubeAction
   | ICubeRotateCubeAction
   | ICubeResizeAction
@@ -199,6 +216,14 @@ export const puzzleReducer: React.Reducer<
         action.rotationCount,
       );
     }
+    case CubeActionType.RotatePerpendicularSlice:
+      return rotatePerpendicularSlice(
+        state,
+        action.face,
+        action.sliceStart,
+        action.sliceSize,
+        action.rotationCount,
+      );
     case CubeActionType.ResizeCube:
       return buildCubeOfSize(action.newSize);
     case CubeActionType.ResetCube:

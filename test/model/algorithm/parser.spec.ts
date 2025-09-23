@@ -128,4 +128,51 @@ describe("_getAlgorithmParser", () => {
       });
     });
   });
+
+  describe("Deep Slices (Exhaustive", () => {
+    describe("Deep Slice", () => {
+      const faces = ["F", "U", "R", "B", "L", "D"];
+      const prefix = [2, 3, 4, 5];
+      const rotations = ["", "2", "'"];
+      it.each(
+        cross(cross(prefix, faces), rotations).map(flattenAlgorithmParts),
+      )("Should parse $0", step => {
+        const parser = _getAlgorithmParser();
+        const match = parser.match(step);
+        expect(match.succeeded(), step).toBeTruthy();
+      });
+    });
+
+    describe("Deep Slice Japanese Notation LaTeX Subscripts", () => {
+      const faces = ["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"];
+      const prefix = [2, 3, 4, 5];
+      const subscripts = [`_2`, `_3`, `_4`, `_5`];
+      const rotations = ["", "2", "'"];
+      it.each(
+        cross(cross(cross(prefix, faces), subscripts), rotations).map(
+          flattenAlgorithmParts,
+        ),
+      )("Should parse $0", step => {
+        const parser = _getAlgorithmParser();
+        const match = parser.match(step);
+        expect(match.succeeded(), step).toBeTruthy();
+      });
+    });
+
+    describe("Deep Slice Japanese Notation Unicode Subscripts", () => {
+      const faces = ["Fw", "Uw", "Rw", "Bw", "Lw", "Dw"];
+      const prefix = [2, 3, 4, 5];
+      const subscripts = ["\u2082", "\u2083", "\u2084", "\u2085"];
+      const rotations = ["", "2", "'"];
+      it.each(
+        cross(cross(cross(prefix, faces), subscripts), rotations).map(
+          flattenAlgorithmParts,
+        ),
+      )("Should parse $0", step => {
+        const parser = _getAlgorithmParser();
+        const match = parser.match(step);
+        expect(match.succeeded(), step).toBeTruthy();
+      });
+    });
+  });
 });

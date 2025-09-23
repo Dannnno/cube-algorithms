@@ -145,6 +145,12 @@ function _validateStep(
         action.offsetIndex,
         action.offsetSize,
       );
+    case CubeActionType.RotatePerpendicularSlice:
+      return _validateSliceIndices(
+        cubeSize,
+        action.sliceStart,
+        action.sliceSize,
+      );
     default:
       forceNever(action);
   }

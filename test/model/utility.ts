@@ -32,7 +32,9 @@ import {
   rotateCubeFromFace,
   rotateCubeInternalSlice,
   rotateCubeSliceFromFace,
+  rotatePerpendicularSlice,
 } from "../../src/model/geometry";
+import { getOppositeFace } from "../../src/model/geometry/helpers";
 
 export function checkCube(
   actualCube: DeepReadonly<CubeData>,
@@ -491,6 +493,55 @@ class RotateSliceFromFaceCommand extends PuzzleCubeCommand<CubeActionType.Rotate
   }
 }
 
+class RotatePerpendicularSliceCommand extends PuzzleCubeCommand<CubeActionType.RotatePerpendicularSlice> {
+  public face: CubeSide;
+  public sliceStart: number;
+  public sliceSize: number;
+  public rotation: number;
+
+  public constructor(
+    face: CubeSide,
+    sliceStart: number,
+    sliceSize: number,
+    rotation: number,
+  ) {
+    super(CubeActionType.RotatePerpendicularSlice);
+    this.face = face;
+    this.sliceStart = sliceStart;
+    this.sliceSize = sliceSize;
+    this.rotation = rotation;
+  }
+
+  public override check(m: Readonly<PuzzleCubeModel>): boolean {
+    return (
+      m.cubeSize > 2 && this.sliceIsValid(m, this.sliceStart, this.sliceSize)
+    );
+  }
+
+  protected override mutateCube(r: CubeData) {
+    return rotatePerpendicularSlice(
+      r,
+      this.face,
+      this.sliceStart,
+      this.sliceSize,
+      this.rotation,
+    );
+  }
+
+  protected override extraCheck(
+    model: DeepReadonly<PuzzleCubeModel>,
+    originalCube: DeepReadonly<CubeData>,
+    newCube: DeepReadonly<CubeData>,
+  ): void {
+    // When you rotate a given slice it should never touch the perpendicular faces
+    const size = model.cubeSize;
+    const opposite = getOppositeFace(this.face);
+
+    this._checkSide(size, this.face, newCube, originalCube);
+    this._checkSide(size, opposite, newCube, originalCube);
+  }
+}
+
 class FocusCubeFaceCommand extends PuzzleCubeCommand<CubeActionType.FocusCube> {
   readonly focusFace: CubeSide;
   public constructor(focusFace: CubeSide) {
@@ -643,6 +694,17 @@ export const fcRotateSliceFromFaceCommand = fc
         numRotations,
       ),
   );
+export const fcRotatePerpendicularSliceCommand = fc
+  .tuple(fcCubeSides, fcSliceStarts, fcSliceSizes, fcRotationCounts)
+  .map(
+    ([face, sliceStart, sliceSize, rotation]) =>
+      new RotatePerpendicularSliceCommand(
+        face,
+        sliceStart,
+        sliceSize,
+        rotation,
+      ),
+  );
 export const fcFocusCubeFaceCommand = fcCubeSides.map(
   side => new FocusCubeFaceCommand(side),
 );
@@ -661,6 +723,7 @@ export const CubeCommands = [
   fcRotateFaceCommand,
   fcRotateFaceDeepCommand,
   fcRotateSliceFromFaceCommand,
+  fcRotatePerpendicularSliceCommand,
   fcFocusCubeFaceCommand,
   fcRotateWholeCubeCommand,
   fcRotateWholeCubeFromFaceCommand,
@@ -753,11 +816,14 @@ export function checkActionInvariants(action: CubeActions): void {
     case CubeActionType.RotateSlice:
       expectAxis(action.axis, `RotateSlice`);
       expectSideId(action.refSide, `RotateSlice`);
+      expectOffsets(action.offsetIndex, action.offsetSize, `RotateSlice`);
+      break;
+    case CubeActionType.RotatePerpendicularSlice:
+      expectSideId(action.face, `RotatePerpendicularSlice`);
       expectOffsets(
-        action.offsetIndex,
-        action.offsetSize,
-        `RotateSlice`,
-        undefined,
+        action.sliceStart,
+        action.sliceSize,
+        `RotatePerpendicularSlice`,
       );
       break;
     case CubeActionType.ResetCube:
@@ -838,15 +904,17 @@ export function expectOffsets(
 }
 
 export function flattenAlgorithmParts(
-  parts: readonly (string | readonly string[])[],
+  parts: readonly ArrayOrMember<string | number>[],
 ): string {
-  const flatParts: string[] = [];
+  const flatParts: (string | number)[] = [];
   for (const part of parts) {
     if (Array.isArray(part)) {
-      flatParts.push(...part);
+      flatParts.push(flattenAlgorithmParts(part));
     } else {
-      flatParts.push(part as string);
+      flatParts.push(part as string | number);
     }
   }
   return flatParts.join("");
 }
+
+type ArrayOrMember<T> = T | readonly T[] | readonly ArrayOrMember<T>[];

@@ -49,6 +49,7 @@ import { assert, DeepReadonly, isBoundedInteger } from "@/common";
 import { CubeAxis, CubeData, CubeSide, SliceDirection } from "../cube";
 import { _focusCubeFace } from "./focus-face";
 import { _setupManipulation } from "./helpers";
+import { _rotateCrossSectionWithFacing } from "./primitives";
 import { _rotateCube, _rotateCubeDirectionally } from "./rotate-cube";
 import { _rotateCubeFace } from "./rotate-face";
 import {
@@ -163,6 +164,41 @@ export function rotateCubeSliceFromFace(
     sliceStart,
     sliceSize,
     direction,
+    rotation,
+  );
+}
+
+/**
+ * Rotate slices along the axis that is perpendicular to the current face
+ * @param cube The cube being modified
+ * @param face The face being faced
+ * @param sliceStart How far into the cube to start slicing
+ * @param sliceSize How many slices to take
+ * @param numTurns How many times to rotate it
+ * @returns The modified cube
+ */
+export function rotatePerpendicularSlice(
+  cube: DeepReadonly<CubeData>,
+  face: CubeSide,
+  sliceStart: number,
+  sliceSize: number,
+  numTurns: number,
+): CubeData {
+  const [newCube, size, rotation] = _setupManipulation(cube, numTurns);
+  assert(
+    isBoundedInteger(sliceStart, 1, size - 2),
+    `sliceStart ∈ [1, ${size - 2}]`,
+  );
+  assert(
+    isBoundedInteger(sliceStart + sliceSize, 2, size - 1),
+    `sliceEnd ∈ [2, ${size - 1}]`,
+  );
+  return _rotateCrossSectionWithFacing(
+    newCube,
+    size,
+    face,
+    sliceStart,
+    sliceSize,
     rotation,
   );
 }

@@ -145,6 +145,72 @@ export const Credits: React.FC<{}> = _ => {
         "https://game-icons.net/1x1/lorc/magic-swirl.html",
       ],
     },
+    {
+      creator: ["Guard13007", "https://www.guard13007.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/play-button.svg",
+        "Play button",
+        "https://game-icons.net/1x1/guard13007/play-button.html",
+      ],
+    },
+    {
+      creator: ["Guard13007", "https://www.guard13007.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/pause-button.svg",
+        "Pause button",
+        "https://game-icons.net/1x1/guard13007/pause-button.html",
+      ],
+    },
+    {
+      creator: ["Delapouite", "https://delapouite.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/next-button.svg",
+        "Next button",
+        "https://game-icons.net/1x1/delapouite/next-button.html",
+      ],
+    },
+    {
+      creator: ["Delapouite", "https://delapouite.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/previous-button.svg",
+        "Previous button",
+        "https://game-icons.net/1x1/delapouite/previous-button.html",
+      ],
+    },
+    {
+      creator: ["Delapouite", "https://delapouite.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/fast-forward-button.svg",
+        "Fast forward button",
+        "https://game-icons.net/1x1/delapouite/fast-forward-button.html",
+      ],
+    },
+    {
+      creator: ["Delapouite", "https://delapouite.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/check-mark.svg",
+        "Check Mark",
+        "https://game-icons.net/1x1/delapouite/check-mark.html",
+      ],
+    },
   ];
   const grouped = groupCredits(creditList);
 

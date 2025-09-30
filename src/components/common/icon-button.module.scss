@@ -33,10 +33,18 @@
   }
 
   &.inlineLabel {
-    display: grid;
-    grid-template-columns: 20px auto;
-    grid-template-rows: auto;
-    grid-gap: 5px;
+    &:not(.emptyLabel) {
+      display: grid;
+      grid-template-columns: 20px auto;
+      grid-template-rows: auto;
+      grid-gap: 5px;
+    }
+    &.emptyLabel {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: center;
+      align-items: center;
+    }
 
     .icon {
       background-size: cover;

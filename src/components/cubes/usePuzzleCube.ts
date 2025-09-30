@@ -1,10 +1,10 @@
-import { DeepReadonly, forceNever } from "@/common";
+import { assert, DeepReadonly, forceNever } from "@/common";
 import {
   CubeAxis,
   CubeData,
   CubeSide,
-  SliceDirection,
   getCubeSize,
+  SliceDirection,
 } from "@model/cube";
 import {
   refocusCube,
@@ -265,4 +265,28 @@ function _normalizeSliceOffsets(
  */
 export function usePuzzleCubeHash(cube: DeepReadonly<CubeData>): string {
   return useMemo(() => cube.map(side => side.join(",")).join("|"), [cube]);
+}
+
+/**
+ * Get an action that will undo a given action
+ * @param action The action to be inverted
+ * @returns An action that does the opposite of the specified action
+ */
+export function getInvertedAction(action: CubeActions): CubeActions {
+  switch (action.type) {
+    case CubeActionType.RotateFace:
+    case CubeActionType.RotateFaceDeepTurn:
+    case CubeActionType.RotateSlice:
+    case CubeActionType.RotatePerpendicularSlice:
+    case CubeActionType.RotateCube:
+    case CubeActionType.RotateCubeFromFace:
+      return {
+        ...action,
+        rotationCount: -action.rotationCount,
+      };
+    case CubeActionType.ResetCube:
+    case CubeActionType.FocusCube:
+    case CubeActionType.ResizeCube:
+      assert(false, `The ${action.type} action can't be reversed`);
+  }
 }

@@ -6,6 +6,7 @@ import { usePrettyId } from "@hooks/usePrettyId";
 import React, { useCallback, useRef } from "react";
 import AcceleratedLabel, { ariaAcceleratedLabel } from "./accelerated-label";
 import {
+  emptyLabel,
   icon,
   iconButton,
   inlineLabel,
@@ -71,6 +72,7 @@ const BaseButton: React.FC<IBaseButtonProps> = props => {
     iconKey ? iconButton : textButton,
     className,
     labelAsText ? inlineLabel : "",
+    label ? "" : emptyLabel,
   ]
     .filter(v => v)
     .join(" ");
@@ -94,7 +96,7 @@ const BaseButton: React.FC<IBaseButtonProps> = props => {
   ) : null;
 
   return (
-    <>
+    <div>
       {!labelAsText && (
         <label htmlFor={id} title={ariaTitle} aria-label={ariaTitle}>
           {labelJsx}
@@ -114,6 +116,6 @@ const BaseButton: React.FC<IBaseButtonProps> = props => {
       >
         {buttonChild}
       </button>
-    </>
+    </div>
   );
 };

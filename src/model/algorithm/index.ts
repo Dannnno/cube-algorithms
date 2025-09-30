@@ -1,5 +1,5 @@
-import { assert, DeepReadonly, forceNever, isBoundedInteger } from "@/common";
-import { CubeActions, CubeActionType } from "@/components/cubes";
+import { assert, forceNever, isBoundedInteger } from "@/common";
+import { CubeActionType, CubeActions } from "@/components/cubes";
 import { _getActionSemantics } from "./actions";
 import { _getAlgorithmParser } from "./parser";
 
@@ -8,11 +8,11 @@ import { _getAlgorithmParser } from "./parser";
  */
 export interface IAlgorithm {
   /** Whether the algorithm is valid */
-  readonly isValid: boolean;
+  isValid: boolean;
   /** The steps of the algorithm (may include invalid steps if `isValid` is `true`) */
-  readonly steps: DeepReadonly<CubeActions[]>;
+  steps: CubeActions[];
   /** The steps that are invalid */
-  readonly invalidSteps: DeepReadonly<IInvalidStep[]>;
+  invalidSteps: IInvalidStep[];
 }
 
 /**
@@ -20,15 +20,15 @@ export interface IAlgorithm {
  */
 export interface IInvalidStep {
   /** Which step it is */
-  readonly stepIndex: number;
+  stepIndex: number;
   /** The literal text of the step, if known */
-  readonly stepLiteral?: string;
+  stepLiteral?: string;
   /** The effective step, if known */
-  readonly step?: CubeActions;
+  step?: CubeActions;
   /** The reason the step is invalid */
-  readonly invalidReason: InvalidStepReason;
+  invalidReason: InvalidStepReason;
   /** A detailed error message explaining the invalid reason */
-  readonly invalidReasonDesc?: string;
+  invalidReasonDesc?: string;
 }
 
 /** A reason a step of an algorithm is invalid */

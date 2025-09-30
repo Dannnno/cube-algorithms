@@ -6,7 +6,7 @@ import {
 } from "@/components/common";
 import { CubeData, getCubeSize } from "@/model/cube";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AlgorithmParser } from "../algorithm/algorithm-parse";
+import { AlgorithmExecutor } from "../algorithm";
 import {
   CubeActionType,
   CubeActions,
@@ -144,7 +144,8 @@ export const ControlPanel: React.FC<IControlPanelProps> = props => {
         <RotateCubeButtonContainer dispatch={dispatch} />
       </div>
 
-      <AlgorithmParser dispatch={dispatch} />
+      <AlgorithmExecutor cubeDispatch={dispatch} cubeSize={cubeSize} />
+      {/* <AlgorithmParser dispatch={dispatch} /> */}
     </div>
   );
 };

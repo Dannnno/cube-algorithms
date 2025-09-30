@@ -10,6 +10,10 @@ interface IAcceleratedLabelProps {
 /** Component that renders a label with text accelerators appropriately underlined */
 export const AcceleratedLabel: React.FC<IAcceleratedLabelProps> = props => {
   const label = props.label;
+  if (!label) {
+    return null;
+  }
+
   if (!label.includes("&")) {
     return <span className={accLabel}>{label}</span>;
   }

@@ -22,6 +22,17 @@ export interface IQueueController<T> {
   startQueue(): void;
   /** The current queue index */
   queueIndex: number;
+  /**
+   * Change how long to wait between steps
+   * @param delayMs The new delay between steps, in ms
+   */
+  changeDelay(delayMs: number): void;
+  /** Pause executing automatically */
+  pause(): void;
+  /** Execute the next step, stepwise */
+  stepwiseNext(): void;
+  /** Execute the prior step, stepwise */
+  stepwisePrior(): void;
 }
 
 /**
@@ -32,11 +43,12 @@ export interface IQueueController<T> {
  * @returns How to control the queue
  */
 export function useTimedCallbackQueue<T>(
-  callback: (param: T) => void,
+  callback: (param: T, ix: number) => void,
   delayMs: number,
   onDeplete?: () => void,
 ): IQueueController<T> {
-  const [_intervalId, setIntervalId] = useState<NodeJS.Timeout | undefined>();
+  const [curDelay, setCurDelay] = useState(delayMs);
+  const [timeoutId, setTimeoutId] = useState<number>(-1);
   const [queue, setQueue] = useState<readonly T[]>([]);
   const [start, setStart] = useState(false);
   const [queueIndex, setQueueIndex] = useState(-1);
@@ -55,39 +67,86 @@ export function useTimedCallbackQueue<T>(
   }, []);
   const startQueue = useCallback(() => setStart(true), []);
 
+  const changeDelay = useCallback(
+    (delayMs: number) => {
+      if (timeoutId !== -1) {
+        window.clearTimeout(timeoutId);
+        setTimeoutId(-1);
+      }
+      setCurDelay(delayMs);
+    },
+    [curDelay, timeoutId],
+  );
+  const pause = useCallback(() => setStart(false), []);
+  const stepwiseNext = useCallback(() => {
+    if (timeoutId !== -1) {
+      window.clearTimeout(timeoutId);
+      setTimeoutId(-1);
+    }
+    setQueueIndex(curIndex => {
+      if (curIndex >= queue.length) {
+        return curIndex;
+      }
+      callback(queue[curIndex], curIndex);
+      return curIndex + 1;
+    });
+  }, [timeoutId, queue]);
+  const stepwisePrior = useCallback(() => {
+    if (timeoutId !== -1) {
+      window.clearTimeout(timeoutId);
+      setTimeoutId(-1);
+    }
+    setQueueIndex(curIndex => {
+      if (curIndex < 1) {
+        return curIndex;
+      }
+      callback(queue[curIndex], curIndex);
+      return curIndex - 1;
+    });
+  }, [timeoutId, queue]);
+
   useEffect(() => {
     if (!start || !queue.length) {
       return;
     }
 
-    let index = 0;
-    setIntervalId(
-      setInterval(() => {
-        if (index >= queue.length) {
-          setStart(false);
-          setQueue([]);
-          setQueueIndex(-1);
-          return;
-        }
-        setQueueIndex(index);
-        const next = queue[index];
-        ++index;
-        callback(next);
-      }, delayMs),
+    setTimeoutId(
+      window.setTimeout(() => {
+        setQueueIndex(curIndex => {
+          if (curIndex >= queue.length) {
+            setStart(false);
+            setQueue([]);
+            setQueueIndex(-1);
+            return curIndex;
+          }
+          callback(queue[curIndex], curIndex);
+          return curIndex + 1;
+        });
+      }, curDelay),
     );
 
     return () =>
-      setIntervalId(curId => {
+      setTimeoutId(curId => {
         setStart(false);
         setQueue([]);
         setQueueIndex(-1);
         onDeplete?.();
         if (curId) {
-          clearInterval(curId);
+          window.clearTimeout(curId);
         }
-        return undefined;
+        return -1;
       });
-  }, [queue, start]);
+  }, [queue, start, curDelay, callback]);
 
-  return { resetQueue, addToQueue, replaceQueue, startQueue, queueIndex };
+  return {
+    resetQueue,
+    addToQueue,
+    replaceQueue,
+    startQueue,
+    queueIndex,
+    changeDelay,
+    pause,
+    stepwiseNext,
+    stepwisePrior,
+  };
 }

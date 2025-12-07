@@ -58,30 +58,27 @@ export type CubeSideData = CubeCellValue[];
  */
 export type CubeData = Tuple<CubeSideData, 6>;
 /**
- * An action to take on each side of a cube
+ * The action to take on a cube
+ * @param sideIx The side being reviewed
+ * @param data The data on the side
+ * @returns Whether the loop should abort early (default: no)
  */
-export type PerSideCallback = {
-  /**
-   * The action to take on a cube
-   * @param sideIx The side being reviewed
-   * @param data The data on the side
-   * @returns Whether the loop should abort early (default: no)
-   */
-  (sideIx: CubeSide, data: DeepReadonly<CubeSideData>): LoopStatus | void;
-};
+export type PerSideCallback = (
+  sideIx: CubeSide,
+  data: DeepReadonly<CubeSideData>,
+) => LoopStatus | void;
 /**
- * An action to take on each cell on a side of a cube
+ * The action to take on a cell
+ * @param row The row the cell is on
+ * @param col The column the cell is on
+ * @param value The value at this cell
+ * @returns Whether the loop should abort early (default: no)
  */
-export type PerCellCallback = {
-  /**
-   * The action to take on a cell
-   * @param row The row the cell is on
-   * @param col The column the cell is on
-   * @param value The value at this cell
-   * @returns Whether the loop should abort early (default: no)
-   */
-  (row: number, col: number, value: CubeCellValue): LoopStatus | void;
-};
+export type PerCellCallback = (
+  row: number,
+  col: number,
+  value: CubeCellValue,
+) => LoopStatus | void;
 
 /**
  * Assert that a value is a valid cube cell
@@ -95,27 +92,13 @@ export function assertIsValidCubeCell(
 /**
  * Assert that a cube is well-formed
  * @param cubeData The cube to check
- */
-export function assertIsValidCube(cubeData: DeepReadonly<CubeData>): void;
-/**
- * Assert that a cube is well-formed
- * @param cubeData The cube to check
  * @param size How large each cube's size is
  */
 export function assertIsValidCube(
-  cubeData: DeepReadonly<CubeData>,
-  size: number,
-): void;
-/**
- * Assert that a cube is well-formed
- * @param cubeData The cube to check
- * @param size How large each cube's size is
- */
-export function assertIsValidCube(
-  cubeData: DeepReadonly<CubeData>,
+  cubeData: readonly (readonly number[])[],
   size?: number,
-): void {
-  const realSize = size ?? getCubeSize(cubeData);
+): asserts cubeData is DeepReadonly<CubeData> {
+  const realSize = size ?? getCubeSize(cubeData as DeepReadonly<CubeData>);
   assert(isPositiveInteger(realSize) && realSize > 1);
   const cellsPerSide = realSize * realSize;
   assert(cubeData.length === 6);

@@ -8,21 +8,15 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import AcceleratedLabel, { ariaAcceleratedLabel } from "./accelerated-label";
+import { AcceleratedLabel } from "./accelerated-label";
+import { ariaAcceleratedLabel } from "./accelerated-label-helpers";
+import { OptionListRenderStyle } from "./option-list-helpers";
 import {
   buttonList,
   icon,
   optionButton,
   optionList,
 } from "./option-list.module.scss";
-
-/** Ways that an optionlist can be styled */
-export enum OptionListRenderStyle {
-  /** As a dropdown */
-  Dropdown,
-  /** As a series of buttons */
-  Buttons,
-}
 
 interface IOptionListProps<T extends string | number> {
   /** The style in which to render the option list */
@@ -132,7 +126,7 @@ function Option<T extends string | number>(props: IOption<T>): React.ReactNode {
   const boundValue = useContext(OptionListSelectedValueContext);
   const isMatch = useMemo(() => boundValue === value, [boundValue, value]);
   const id = usePrettyId(label);
-  const onSelect = useCallback(() => setValue(value), []);
+  const onSelect = useCallback(() => setValue(value), [value, setValue]);
   const onKeyDown = useKeyboardClickable(onSelect);
   useKeyboardShortcut(shortcut, onSelect);
   const ariaTitle = ariaAcceleratedLabel("", label);

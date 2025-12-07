@@ -1,4 +1,4 @@
-import fc from "fast-check";
+import fc, { Command } from "fast-check";
 import { expect } from "vitest";
 import { Counter, DeepReadonly, forceNever } from "../../src/common";
 import { CubeActionType } from "../../src/components/cubes";
@@ -66,13 +66,13 @@ export function getTestCube(
 ): DeepReadonly<CubeData> {
   const length = size * size;
   const cube = [
-    Array.from({ length }, _ => 1),
-    Array.from({ length }, _ => 2),
-    Array.from({ length }, _ => 3),
-    Array.from({ length }, _ => 4),
-    Array.from({ length }, _ => 5),
-    Array.from({ length }, _ => 6),
-  ];
+    Array.from({ length }, _ => 1 as const),
+    Array.from({ length }, _ => 2 as const),
+    Array.from({ length }, _ => 3 as const),
+    Array.from({ length }, _ => 4 as const),
+    Array.from({ length }, _ => 5 as const),
+    Array.from({ length }, _ => 6 as const),
+  ] as const;
 
   if (!mutate) {
     return cube;
@@ -158,12 +158,16 @@ export function nameSide(side: CubeSide): string {
  */
 export function nameRotationAmount(rotation: RotationAmount | number): string {
   switch (rotation) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     case RotationAmount.None:
       return "0° ↻";
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     case RotationAmount.Clockwise:
       return "90° ↻";
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     case RotationAmount.CounterClockwise:
       return "270° ↻";
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     case RotationAmount.Halfway:
       return "180° ↻";
     default:
@@ -191,13 +195,13 @@ export function nameDirection(direction: SliceDirection): string {
   }
 }
 
-type PuzzleCubeModel = {
+interface IPuzzleCubeModel {
   cubeSize: number;
   commandList: CubeActionType[];
-};
+}
 
 abstract class PuzzleCubeCommand<T extends CubeActionType>
-  implements fc.Command<PuzzleCubeModel, CubeData>
+  implements Command<IPuzzleCubeModel, CubeData>
 {
   public action: T;
   protected constructor(actionType: T) {
@@ -208,13 +212,13 @@ abstract class PuzzleCubeCommand<T extends CubeActionType>
     return this.action;
   }
 
-  public check(_m: Readonly<PuzzleCubeModel>): boolean {
+  public check(_m: Readonly<IPuzzleCubeModel>): boolean {
     return true;
   }
 
-  public run(m: PuzzleCubeModel, r: CubeData): void {
+  public run(m: IPuzzleCubeModel, r: CubeData): void {
     // Save off a copy so we know the APIs don't mutate the cube
-    const deepCopy = r.map(side => Array.from(side));
+    const deepCopy = r.map(side => Array.from(side)) as CubeData;
 
     // The cube should be valid before we mutate it
     assertIsValidCube(r, m.cubeSize);
@@ -238,15 +242,17 @@ abstract class PuzzleCubeCommand<T extends CubeActionType>
   }
 
   protected extraCheck(
-    _model: DeepReadonly<PuzzleCubeModel>,
+    _model: DeepReadonly<IPuzzleCubeModel>,
     _originalCube: DeepReadonly<CubeData>,
     _newCube: DeepReadonly<CubeData>,
-  ): void {}
+  ): void {
+    void 0;
+  }
 
   protected abstract mutateCube(r: DeepReadonly<CubeData>): CubeData;
 
   protected sliceIsValid(
-    model: Readonly<PuzzleCubeModel>,
+    model: Readonly<IPuzzleCubeModel>,
     sliceStart: number,
     sliceSize: number,
   ): boolean {
@@ -272,6 +278,7 @@ abstract class PuzzleCubeCommand<T extends CubeActionType>
     // Don't allow a direction + face + axis combination that doesn't make sense
     switch (face) {
       case CubeSide.Front:
+      // eslint-disable-next-line no-fallthrough
       case CubeSide.Back:
         switch (axis) {
           case "X":
@@ -280,8 +287,12 @@ abstract class PuzzleCubeCommand<T extends CubeActionType>
             return this._isVertical(direction);
           case "Z":
             return false;
+          default:
+            forceNever(axis);
         }
+        break; // eslint doesn't detect this as unreachable
       case CubeSide.Left:
+      // eslint-disable-next-line no-fallthrough
       case CubeSide.Right:
         switch (axis) {
           case "X":
@@ -290,8 +301,12 @@ abstract class PuzzleCubeCommand<T extends CubeActionType>
             return false;
           case "Z":
             return this._isVertical(direction);
+          default:
+            forceNever(axis);
         }
+        break; // eslint doesn't detect this as unreachable
       case CubeSide.Top:
+      // eslint-disable-next-line no-fallthrough
       case CubeSide.Bottom:
         switch (axis) {
           case "X":
@@ -300,6 +315,8 @@ abstract class PuzzleCubeCommand<T extends CubeActionType>
             return this._isVertical(direction);
           case "Z":
             return this._isHorizontal(direction);
+          default:
+            forceNever(axis);
         }
     }
   }
@@ -361,7 +378,7 @@ class RotateFaceCommand extends PuzzleCubeCommand<CubeActionType.RotateFace> {
   }
 
   protected override extraCheck(
-    model: DeepReadonly<PuzzleCubeModel>,
+    model: DeepReadonly<IPuzzleCubeModel>,
     originalCube: DeepReadonly<CubeData>,
     newCube: DeepReadonly<CubeData>,
   ): void {
@@ -419,7 +436,7 @@ class RotateSliceFromFaceCommand extends PuzzleCubeCommand<CubeActionType.Rotate
     this.numRotations = numRotations;
   }
 
-  public override check(m: Readonly<PuzzleCubeModel>): boolean {
+  public override check(m: Readonly<IPuzzleCubeModel>): boolean {
     return (
       m.cubeSize > 2
       && this.sliceIsValid(m, this.offsetStart, this.numSlices)
@@ -444,7 +461,7 @@ class RotateSliceFromFaceCommand extends PuzzleCubeCommand<CubeActionType.Rotate
   }
 
   protected override extraCheck(
-    model: DeepReadonly<PuzzleCubeModel>,
+    model: DeepReadonly<IPuzzleCubeModel>,
     originalCube: DeepReadonly<CubeData>,
     newCube: DeepReadonly<CubeData>,
   ): void {
@@ -483,7 +500,7 @@ class FocusCubeFaceCommand extends PuzzleCubeCommand<CubeActionType.FocusCube> {
   }
 
   protected override extraCheck(
-    _model: DeepReadonly<PuzzleCubeModel>,
+    _model: DeepReadonly<IPuzzleCubeModel>,
     originalCube: DeepReadonly<CubeData>,
     newCube: DeepReadonly<CubeData>,
   ): void {
@@ -505,7 +522,7 @@ class RotateWholeCubeCommand extends PuzzleCubeCommand<CubeActionType.RotateCube
   }
 
   protected override extraCheck(
-    _model: DeepReadonly<PuzzleCubeModel>,
+    _model: DeepReadonly<IPuzzleCubeModel>,
     originalCube: DeepReadonly<CubeData>,
     newCube: DeepReadonly<CubeData>,
   ): void {
@@ -540,7 +557,7 @@ class RotateWholeCubeFromFaceCommand extends PuzzleCubeCommand<CubeActionType.Ro
   }
 
   protected override extraCheck(
-    _model: DeepReadonly<PuzzleCubeModel>,
+    _model: DeepReadonly<IPuzzleCubeModel>,
     originalCube: DeepReadonly<CubeData>,
     newCube: DeepReadonly<CubeData>,
   ): void {
@@ -567,32 +584,6 @@ export const fcCubeDirections = fc.constantFrom(
 export const fcSliceStarts = fc.nat().filter(v => v > 0);
 export const fcSliceSizes = fc.nat().filter(v => v > 0);
 export const fcRotationCounts = fc.integer();
-export const fcCube = (gen: fc.GeneratorValue): DeepReadonly<CubeData> => {
-  const cubeSize = gen(fc.integer, { min: 2, max: 9 });
-  const sq = cubeSize ** 2;
-  const cubeValues = [
-    ...Array.from({ length: sq }, _ => CubeSide.Left),
-    ...Array.from({ length: sq }, _ => CubeSide.Front),
-    ...Array.from({ length: sq }, _ => CubeSide.Right),
-    ...Array.from({ length: sq }, _ => CubeSide.Back),
-    ...Array.from({ length: sq }, _ => CubeSide.Top),
-    ...Array.from({ length: sq }, _ => CubeSide.Bottom),
-  ];
-  const shuffled = gen(
-    fc.shuffledSubarray(cubeValues, { minLength: cubeValues.length }).filter,
-    _ => true,
-  );
-  const shuffledCube = [
-    shuffled.slice(0 * sq, 1 * sq),
-    shuffled.slice(1 * sq, 2 * sq),
-    shuffled.slice(2 * sq, 3 * sq),
-    shuffled.slice(3 * sq, 4 * sq),
-    shuffled.slice(4 * sq, 5 * sq),
-    shuffled.slice(5 * sq, 6 * sq),
-  ];
-  return shuffledCube;
-};
-
 export const fcRotateFaceCommand = fc
   .tuple(fcCubeSides, fcRotationCounts)
   .map(([side, cnt]) => new RotateFaceCommand(side, cnt));

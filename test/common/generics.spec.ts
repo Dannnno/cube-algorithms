@@ -5,7 +5,7 @@ import { DeepReadonly, Tuple } from "../../src/common/generics";
 describe("DeepReadonly", () => {
   it("DeepReadonly<primitive>", () => {
     const value: DeepReadonly<number> = 1;
-    expectTypeOf(value).toMatchTypeOf<number>();
+    expectTypeOf(value).toExtend<number>();
 
     assertType<DeepReadonly<number>>(1);
     // @ts-expect-error value is not a number
@@ -14,7 +14,7 @@ describe("DeepReadonly", () => {
 
   it("DeepReadonly<array>", () => {
     const value: DeepReadonly<number[]> = [1];
-    expectTypeOf(value).toMatchTypeOf<readonly number[]>();
+    expectTypeOf(value).toExtend<readonly number[]>();
 
     // @ts-expect-error value is not a number
     assertType<DeepReadonly<number[]>>([""]);
@@ -22,7 +22,7 @@ describe("DeepReadonly", () => {
 
   it("DeepReadonly<object>", () => {
     const value: DeepReadonly<{ key: number }> = { key: 1 };
-    expectTypeOf(value).toMatchTypeOf<{ readonly key: number }>();
+    expectTypeOf(value).toExtend<{ readonly key: number }>();
 
     // @ts-expect-error value is not a number
     assertType<DeepReadonly<{ key: number }>>({ key: "" });
@@ -30,8 +30,8 @@ describe("DeepReadonly", () => {
 
   it("DeepReadonly<Tuple>", () => {
     const value: DeepReadonly<[number, number]> = [1, 2];
-    expectTypeOf(value).toMatchTypeOf<readonly number[]>();
-    expectTypeOf(value).toMatchTypeOf<readonly [number, number]>();
+    expectTypeOf(value).toExtend<readonly number[]>();
+    expectTypeOf(value).toExtend<readonly [number, number]>();
   });
 
   it("DeepReadonly<nested>", () => {
@@ -40,7 +40,7 @@ describe("DeepReadonly", () => {
       arr: number[];
       obj: { otherKey: string };
     }> = { key: 1, arr: [2], obj: { otherKey: "" } };
-    expectTypeOf(value).toMatchTypeOf<{
+    expectTypeOf(value).toExtend<{
       readonly key: number;
       readonly arr: readonly number[];
       readonly obj: { readonly otherKey: string };
@@ -82,7 +82,7 @@ describe("DeepReadonly", () => {
 describe("Tuple<T, N>", () => {
   it("handle tuples of size one", () => {
     const value: Tuple<number, 1> = [1];
-    expectTypeOf(value).toMatchTypeOf<[number]>();
+    expectTypeOf(value).toExtend<[number]>();
   });
 
   it("catches mis-typeing", () =>

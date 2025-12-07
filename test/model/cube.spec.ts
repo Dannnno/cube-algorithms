@@ -5,6 +5,8 @@ import { LoopStatus } from "../../src/common/iterables";
 import {
   assertIsValidCube,
   assertIsValidCubeCell,
+  CubeData,
+  CubeSideData,
   forEachCellOnSide,
   forEachSide,
   getCubeSize,
@@ -48,7 +50,7 @@ describe("getCubeSize", () => {
             return side.length === sq;
           }),
         ([size, side]) => {
-          const cube = [side, side, side, side, side, side];
+          const cube = [side, side, side, side, side, side] as const;
           expect(getCubeSize(cube)).toBe(size);
         },
       ),
@@ -85,9 +87,7 @@ describe("assertIsValidCubeCell", () => {
       ),
     ));
   it("should allow anything that is a valid cube side", () =>
-    fc.assert(
-      fc.property(fcCubeSides, val => void assertIsValidCubeCell(val)),
-    ));
+    fc.assert(fc.property(fcCubeSides, val => assertIsValidCubeCell(val))));
 });
 
 describe("assertIsValidCube", () => {
@@ -293,7 +293,7 @@ describe("assertIsValidCube", () => {
 });
 
 describe("forEachSide", () => {
-  const cube = [
+  const cube: CubeData = [
     [1, 1, 1, 1],
     [2, 2, 2, 2],
     [3, 3, 3, 3],
@@ -336,7 +336,7 @@ describe("forEachSide", () => {
 });
 
 describe("forEachCellOnSide", () => {
-  const side = [1, 2, 3, 4];
+  const side: CubeSideData = [1, 2, 3, 4];
   const toVisit = [
     [0, 0, 1],
     [0, 1, 2],
@@ -456,7 +456,7 @@ describe("forEachCellOnSide", () => {
               nextCol = (c + 1) % size;
               nextRow = nextCol === 0 ? nextRow + 1 : nextRow;
               if (ix === actualStopIndex) {
-                return ret;
+                return ret ?? LoopStatus.KeepLooping;
               }
             }),
             "return value",

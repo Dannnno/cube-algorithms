@@ -25,14 +25,13 @@ export function useKeyboardShortcut(
   shortcut: KeyboardShortcut | undefined,
   callback: (target: HTMLElement) => void,
 ): void {
-  const [hasCtrl, hasAlt, hasShift, letter1, letter2, letter3] = useMemo(() => {
+  const [hasCtrl, hasAlt, letter1, letter2, letter3] = useMemo(() => {
     if (!shortcut) {
       return [false, false, false, "A", undefined];
     }
     const pieces = typeSafeSplit(shortcut, "+");
     let hasCtrl = false;
     let hasAlt = false;
-    let hasShift = false;
     let letter1: KeyPress | undefined;
     let letter2: KeyPress | undefined;
     let letter3: KeyPress | undefined;
@@ -60,7 +59,7 @@ export function useKeyboardShortcut(
     }
     assert(letter1);
 
-    return [hasCtrl, hasAlt, hasShift, letter1, letter2, letter3];
+    return [hasCtrl, hasAlt, letter1, letter2, letter3] as const;
   }, [shortcut]);
   const [letter1WasPressed, setLetter1WasPressed] = useState(false);
   const [letter2WasPressed, setLetter2WasPressed] = useState(false);
@@ -73,10 +72,13 @@ export function useKeyboardShortcut(
         shortcut
         && (!hasCtrl || event.ctrlKey)
         && (!hasAlt || event.altKey)
-        && (!hasShift || event.shiftKey)
       ) {
         const keyLetter = event.key.toLowerCase();
-        for (const [opt, flags, setter] of [
+        const options: [
+          KeyPress | undefined,
+          boolean,
+          React.Dispatch<React.SetStateAction<boolean>>,
+        ][] = [
           [
             letter3,
             letter1WasPressed && letter2WasPressed,
@@ -84,7 +86,8 @@ export function useKeyboardShortcut(
           ],
           [letter2, letter1WasPressed, setLetter2WasPressed],
           [letter1, true, setLetter1WasPressed],
-        ] as const) {
+        ];
+        for (const [opt, flags, setter] of options) {
           if (keyLetter !== opt?.toLowerCase()) {
             continue;
           }
@@ -106,7 +109,6 @@ export function useKeyboardShortcut(
     [
       hasCtrl,
       hasAlt,
-      hasShift,
       letter1,
       letter2,
       letter3,
@@ -119,9 +121,9 @@ export function useKeyboardShortcut(
   useEffect(() => {
     if (
       target
-      && !!letter1 === !!letter1WasPressed
-      && !!letter2 === !!letter2WasPressed
-      && !!letter3 === !!letter3WasPressed
+      && !letter1 === !letter1WasPressed
+      && !letter2 === !letter2WasPressed
+      && !letter3 === !letter3WasPressed
     ) {
       callback(target);
       setLetter1WasPressed(false);
@@ -137,6 +139,7 @@ export function useKeyboardShortcut(
     letter2WasPressed,
     letter3,
     letter3WasPressed,
+    callback,
   ]);
 
   useEffect(() => {

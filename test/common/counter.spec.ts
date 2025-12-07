@@ -1,4 +1,4 @@
-import fc from "fast-check";
+import fc, { Command } from "fast-check";
 import { describe, expect, it } from "vitest";
 import { Counter } from "../../src/common";
 
@@ -16,10 +16,7 @@ describe("Counter", () => {
       fc.property(fc.array(varTypeCounterMember), list => {
         const counter = new Counter(list);
         for (const member of list) {
-          expect(
-            counter.has(member),
-            Object(member).toString(),
-          ).toBeGreaterThanOrEqual(1);
+          expect(counter.has(member)).toBeGreaterThanOrEqual(1);
         }
       }),
     ));
@@ -163,15 +160,15 @@ const varTypeCounterMember = fc.oneof(
     .filter(obj => !("toString" in obj) || typeof obj.toString === "function"),
 );
 
-type CounterModel = {
+interface ICounterModel {
   count: number;
-};
+}
 
-class IncCommand implements fc.Command<CounterModel, Counter<number>> {
-  check(_m: Readonly<CounterModel>): boolean {
+class IncCommand implements Command<ICounterModel, Counter<number>> {
+  check(_m: Readonly<ICounterModel>): boolean {
     return true;
   }
-  run(m: CounterModel, r: Counter<number>): void {
+  run(m: ICounterModel, r: Counter<number>): void {
     m.count += 1;
     expect(r.inc(1), `inc return`).toBe(m.count);
     expect(r.has(1), `has check`).toBe(m.count);
@@ -180,11 +177,11 @@ class IncCommand implements fc.Command<CounterModel, Counter<number>> {
     return `Counter.inc(1)`;
   }
 }
-class DecCommand implements fc.Command<CounterModel, Counter<number>> {
-  check(_m: Readonly<CounterModel>): boolean {
+class DecCommand implements Command<ICounterModel, Counter<number>> {
+  check(_m: Readonly<ICounterModel>): boolean {
     return true;
   }
-  run(m: CounterModel, r: Counter<number>): void {
+  run(m: ICounterModel, r: Counter<number>): void {
     m.count = m.count <= 0 ? 0 : m.count - 1;
     expect(r.dec(1), `dec return`).toBe(m.count);
     expect(r.has(1), `has check`).toBe(m.count);
@@ -193,11 +190,11 @@ class DecCommand implements fc.Command<CounterModel, Counter<number>> {
     return `Counter.dec(1)`;
   }
 }
-class Dec0Command implements fc.Command<CounterModel, Counter<number>> {
-  check(_m: Readonly<CounterModel>): boolean {
+class Dec0Command implements Command<ICounterModel, Counter<number>> {
+  check(_m: Readonly<ICounterModel>): boolean {
     return true;
   }
-  run(m: CounterModel, r: Counter<number>): void {
+  run(m: ICounterModel, r: Counter<number>): void {
     m.count = 0;
     r.dec0(1);
     expect(r.has(1), `has check`).toBe(m.count);
@@ -206,11 +203,11 @@ class Dec0Command implements fc.Command<CounterModel, Counter<number>> {
     return `Counter.dec0(1)`;
   }
 }
-class ClearCommand implements fc.Command<CounterModel, Counter<number>> {
-  check(_m: Readonly<CounterModel>): boolean {
+class ClearCommand implements Command<ICounterModel, Counter<number>> {
+  check(_m: Readonly<ICounterModel>): boolean {
     return true;
   }
-  run(m: CounterModel, r: Counter<number>): void {
+  run(m: ICounterModel, r: Counter<number>): void {
     m.count = 0;
     r.clear();
     expect(r.has(1), `has check`).toBe(m.count);

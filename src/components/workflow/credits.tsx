@@ -11,7 +11,7 @@ import {
  * Component that displays resources that need attribution, e.g.
  * icons licensed via CC By 3.0
  */
-export const Credits: React.FC<{}> = _ => {
+export const Credits: React.FC = _ => {
   const creditList: ICredit[] = [
     {
       creator: ["Delapouite", "https://delapouite.com/"],
@@ -163,7 +163,10 @@ const GroupedCredits: React.FC<{
     const licenses = credits[creator];
     for (const license in licenses.group) {
       const licenseType = license as License;
-      const sites = licenses.group[licenseType]!;
+      const sites = licenses.group[licenseType];
+      if (!sites) {
+        continue;
+      }
       for (const site in sites.group) {
         const mySite = sites.group[site];
         rows.push(
@@ -180,6 +183,7 @@ const GroupedCredits: React.FC<{
             {...mySite.resources.map(
               ([type, resource, resourceName, resourceUrl], ix) => {
                 switch (type) {
+                  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                   case CreditType.Image:
                     return (
                       <div
@@ -277,6 +281,7 @@ function groupCredits(credits: readonly ICredit[]): IGroupedCredits {
     if (!(license in thisGroup)) {
       thisGroup[license] = { count: 0, group: {} };
     }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const thisLicense = thisGroup[license]!;
     const thisLicenseGroup = thisLicense.group;
     if (!(retrievedFromSite in thisLicenseGroup)) {

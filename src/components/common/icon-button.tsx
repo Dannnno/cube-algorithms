@@ -4,7 +4,8 @@ import {
 } from "@hooks/useKeyboardShortcut";
 import { usePrettyId } from "@hooks/usePrettyId";
 import React, { useCallback, useRef } from "react";
-import AcceleratedLabel, { ariaAcceleratedLabel } from "./accelerated-label";
+import { AcceleratedLabel } from "./accelerated-label";
+import { ariaAcceleratedLabel } from "./accelerated-label-helpers";
 import {
   icon,
   iconButton,
@@ -77,6 +78,7 @@ const BaseButton: React.FC<IBaseButtonProps> = props => {
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const buttonHandler = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     () => onClick(buttonRef.current!),
     [onClick],
   );

@@ -7,7 +7,7 @@ import { ControlPanel, Credits } from "@components/workflow";
 import React, { useState } from "react";
 import { controlPanel, cube, cubePlayground, foot } from "./App.module.scss";
 
-const App: React.FC<{}> = () => {
+const App: React.FC<object> = () => {
   const [size, setSize] = useState(3);
   const [puzzleCube, cubeDispatch] = usePuzzleCube(size);
   const [renderStyle, setCubeRenderStyle] = useState(CubeRenderStyle.Flat);

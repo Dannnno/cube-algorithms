@@ -4,7 +4,7 @@
  * @param msg The message to display, if any
  */
 export function assert(toAssert: unknown, msg?: string): asserts toAssert {
-  if (!!toAssert) {
+  if (toAssert) {
     return;
   }
   if (msg) {

@@ -23,12 +23,6 @@ export const enum RotationAmount {
   CounterClockwise = 3,
   /** Rotate twice clockwise */
   Halfway = 2,
-  /** Rotate twice counter-clockwise */
-  HalfwayReverse = 2,
-  /** Rotate three times clockwise */
-  ThreeQuarter = 3,
-  /** Rotate three times counter-clockwise */
-  ThreeQuarterReverse = 1,
 }
 
 /**
@@ -108,7 +102,7 @@ function _rotateCubeFace(
   numTurns: RotationAmount,
   skipSlice: boolean = false,
 ): CubeData {
-  if (numTurns === 0) {
+  if (numTurns === RotationAmount.None) {
     return cubeData;
   }
 
@@ -171,7 +165,7 @@ function _rotateCubeFace(
   const side = cubeData[sideId - 1]; // 1-indexed
   const _v = (r: number, c: number) => _at(side, cubeSize, r, c);
   const layers = Math.floor(cubeSize / 2);
-  for (let i = 0; i < numTurns; ++i) {
+  for (let i = 0; i < (numTurns as number); ++i) {
     for (let layer = 0; layer < layers; ++layer) {
       const first = layer;
       const last = cubeSize - first - 1;
@@ -546,7 +540,7 @@ function _rotateCubeInternalSliceX(
   for (let rowOff = offsetStart; rowOff < offsetEnd; ++rowOff) {
     for (let colOff = 0; colOff < cubeSize; ++colOff) {
       const ix = _i(rowOff, colOff);
-      for (let r = 0; r < numRotations; ++r) {
+      for (let r = 0; r < (numRotations as number); ++r) {
         const tmp = side1[ix];
         side1[ix] = side2[ix];
         side2[ix] = side3[ix];
@@ -602,7 +596,7 @@ function _rotateCubeInternalSliceY(
       const side5Ix = side2Ix;
       const side6Ix = side2Ix;
       const side4Ix = _i(cubeSize - rowOff - 1, cubeSize - colOff - 1);
-      for (let r = 0; r < numRotations; ++r) {
+      for (let r = 0; r < (numRotations as number); ++r) {
         const tmp = side2[side2Ix];
         side2[side2Ix] = side6[side6Ix];
         side6[side6Ix] = side4[side4Ix];
@@ -658,7 +652,7 @@ function _rotateCubeInternalSliceZ(
       const side3Ix = _i(cubeSize - rowOff - 1, cubeSize - colOff - 1);
       const side5Ix = _i(colOff, cubeSize - rowOff - 1);
       const side6Ix = _i(cubeSize - colOff - 1, rowOff);
-      for (let r = 0; r < numRotations; ++r) {
+      for (let r = 0; r < (numRotations as number); ++r) {
         const tmp = side1[side1Ix];
         side1[side1Ix] = side6[side6Ix];
         side6[side6Ix] = side3[side3Ix];
@@ -720,7 +714,7 @@ export function refocusCube(
       RotationAmount.Clockwise,
       RotationAmount.CounterClockwise,
     ],
-    [CubeSide.Back]: [2, RotationAmount.Halfway, RotationAmount.HalfwayReverse],
+    [CubeSide.Back]: [2, RotationAmount.Halfway, RotationAmount.Halfway],
   };
 
   switch (focusSideId) {
@@ -732,6 +726,7 @@ export function refocusCube(
         numPopsDict[focusSideId];
       let ix = 0;
       while (ix < numPops) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         xAxisCycle.unshift(xAxisCycle.pop()!);
         ++ix;
       }

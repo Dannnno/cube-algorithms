@@ -121,10 +121,11 @@ describe("zip", () => {
         fc
           .tuple(arrayBuilder, arrayBuilder)
           .filter(([left, right]) => left.length !== right.length),
-        ([left, right]) =>
-          void expect(() => zip(left, right, _ => {})).toThrowError(
+        ([left, right]) => {
+          expect(() => zip(left, right, _ => void 0)).toThrowError(
             'Assertion of "false" failed',
-          ),
+          );
+        },
       ),
       {
         examples: [
@@ -164,12 +165,7 @@ describe("zip", () => {
         expect(timesCalled).toBe(left.length);
       }),
       {
-        examples: [
-          [
-            [1, 2],
-            [3, 4],
-          ],
-        ],
+        examples: [[[1, 2]], [[3, 4]]],
       },
     ));
   it("should be able to exit early", () =>

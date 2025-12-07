@@ -62,7 +62,7 @@ export const RenderedCube: React.FC<IReactCubeProps> = props => {
   const checkFocus = useCallback(
     (event: FocusEvent) =>
       setAnyHasFocus(
-        cubeDivRef.current?.contains(event.target as HTMLElement) || false,
+        cubeDivRef.current?.contains(event.target as HTMLElement) ?? false,
       ),
     [],
   );

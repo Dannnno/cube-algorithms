@@ -8,7 +8,7 @@ import { useId, useMemo } from "react";
 export function usePrettyId(suffix: string): string {
   const id = useId();
   return useMemo(() => {
-    const safeSuffix = suffix.replace(/[^a-zA-Z0-9_\-]/, "");
+    const safeSuffix = suffix.replace(/[^a-zA-Z0-9_-]/, "");
     return `${id}-${safeSuffix}`;
   }, [id, suffix]);
 }

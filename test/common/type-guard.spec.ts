@@ -26,13 +26,9 @@ describe("assert", () => {
     ));
   it("should throw when the assertion is false", () =>
     fc.assert(
-      fc.property(
-        fc.falsy(),
-        val =>
-          void expect(() => assert(val)).toThrowError(
-            `Assertion of "${val}" failed`,
-          ),
-      ),
+      fc.property(fc.falsy(), val => {
+        expect(() => assert(val)).toThrowError(`Assertion of "${val}" failed`);
+      }),
     ));
   it("should throw a specific message when the assertion is false", () =>
     fc.assert(
@@ -45,10 +41,18 @@ describe("assert", () => {
 });
 
 describe("isInteger", () => {
-  it("Gets positive integers right", () => expect(isInteger(1)).toBeTruthy());
-  it("Gets negative integers right", () => expect(isInteger(-1)).toBeTruthy());
-  it("Gets zero right", () => expect(isInteger(0)).toBeTruthy());
-  it("Gets floats right", () => expect(isInteger(1.1)).toBeFalsy());
+  it("Gets positive integers right", () => {
+    expect(isInteger(1)).toBeTruthy();
+  });
+  it("Gets negative integers right", () => {
+    expect(isInteger(-1)).toBeTruthy();
+  });
+  it("Gets zero right", () => {
+    expect(isInteger(0)).toBeTruthy();
+  });
+  it("Gets floats right", () => {
+    expect(isInteger(1.1)).toBeFalsy();
+  });
 
   it("should correctly identify integers", () =>
     fc.assert(
@@ -61,7 +65,9 @@ describe("isInteger", () => {
           fc.nat(),
           fc.maxSafeNat(),
         ),
-        val => void expect(isInteger(val)).toBeTruthy(),
+        val => {
+          expect(isInteger(val)).toBeTruthy();
+        },
       ),
     ));
   it("should correctly identify non-integers", () =>
@@ -76,7 +82,9 @@ describe("isInteger", () => {
           fc.object(),
           fc.array(fc.integer()),
         ),
-        val => void expect(isInteger(val)).toBeFalsy(),
+        val => {
+          expect(isInteger(val)).toBeFalsy();
+        },
       ),
     ));
 });
@@ -86,8 +94,12 @@ describe("isPositiveInteger", () => {
     expect(isPositiveInteger(1)).toBeTruthy());
   it("Gets negative integers right", () =>
     expect(isPositiveInteger(-1)).toBeFalsy());
-  it("Gets zero right", () => expect(isPositiveInteger(0)).toBeFalsy());
-  it("Gets floats right", () => expect(isPositiveInteger(1.1)).toBeFalsy());
+  it("Gets zero right", () => {
+    expect(isPositiveInteger(0)).toBeFalsy();
+  });
+  it("Gets floats right", () => {
+    expect(isPositiveInteger(1.1)).toBeFalsy();
+  });
 
   it("should correctly identify positive integers", () =>
     fc.assert(
@@ -102,7 +114,9 @@ describe("isPositiveInteger", () => {
             fc.maxSafeNat(),
           )
           .filter(i => i > 0),
-        val => void expect(isPositiveInteger(val)).toBeTruthy(),
+        val => {
+          expect(isPositiveInteger(val)).toBeTruthy();
+        },
       ),
     ));
   it("should correctly identify negative integers and zero", () =>
@@ -112,7 +126,9 @@ describe("isPositiveInteger", () => {
           fc.integer().filter(i => i < 1),
           fc.nat().map(n => -n),
         ),
-        val => void expect(isPositiveInteger(val)).toBeFalsy(),
+        val => {
+          expect(isPositiveInteger(val)).toBeFalsy();
+        },
       ),
     ));
   it("should correctly identify non-integers", () =>
@@ -127,27 +143,38 @@ describe("isPositiveInteger", () => {
           fc.object(),
           fc.array(fc.integer()),
         ),
-        val => void expect(isPositiveInteger(val)).toBeFalsy(),
+        val => {
+          expect(isPositiveInteger(val)).toBeFalsy();
+        },
       ),
     ));
 });
 
 describe("isBoundedInteger", () => {
-  it("Gets positive integers right", () =>
-    expect(isBoundedInteger(1, 0, 2)).toBeTruthy());
-  it("Gets negative integers right", () =>
-    expect(isBoundedInteger(-1, -2, 0)).toBeTruthy());
-  it("Gets zero right", () => expect(isBoundedInteger(0, -1, 1)).toBeTruthy());
-  it("Gets floats right", () =>
-    expect(isBoundedInteger(1.1, 0, 2)).toBeFalsy());
-  it("Gets integers equal to min right", () =>
-    expect(isBoundedInteger(1, 1, 2)).toBeTruthy());
-  it("Gets integers equal to max right", () =>
-    expect(isBoundedInteger(2, 1, 2)).toBeTruthy());
-  it("Gets integers too low right", () =>
-    expect(isBoundedInteger(0, 1, 2)).toBeFalsy());
-  it("Gets integers too high right", () =>
-    expect(isBoundedInteger(3, 1, 2)).toBeFalsy());
+  it("Gets positive integers right", () => {
+    expect(isBoundedInteger(1, 0, 2)).toBeTruthy();
+  });
+  it("Gets negative integers right", () => {
+    expect(isBoundedInteger(-1, -2, 0)).toBeTruthy();
+  });
+  it("Gets zero right", () => {
+    expect(isBoundedInteger(0, -1, 1)).toBeTruthy();
+  });
+  it("Gets floats right", () => {
+    expect(isBoundedInteger(1.1, 0, 2)).toBeFalsy();
+  });
+  it("Gets integers equal to min right", () => {
+    expect(isBoundedInteger(1, 1, 2)).toBeTruthy();
+  });
+  it("Gets integers equal to max right", () => {
+    expect(isBoundedInteger(2, 1, 2)).toBeTruthy();
+  });
+  it("Gets integers too low right", () => {
+    expect(isBoundedInteger(0, 1, 2)).toBeFalsy();
+  });
+  it("Gets integers too high right", () => {
+    expect(isBoundedInteger(3, 1, 2)).toBeFalsy();
+  });
 
   it("should correctly identify integers", () =>
     fc.assert(
@@ -164,14 +191,15 @@ describe("isBoundedInteger", () => {
           .filter(i => i > 0),
         fc.integer(),
         fc.integer(),
-        (val, min, max) =>
-          void expect(
+        (val, min, max) => {
+          expect(
             isBoundedInteger(val, min < max ? min : max, min < max ? max : min),
           ).toBe(
             min < max //
               ? val >= min && val <= max
               : val >= max && val <= min,
-          ),
+          );
+        },
       ),
     ));
   it("should correctly identify non-integers", () =>
@@ -188,16 +216,18 @@ describe("isBoundedInteger", () => {
         ),
         fc.integer(),
         fc.integer(),
-        (val, min, max) =>
-          void expect(
+        (val, min, max) => {
+          expect(
             isBoundedInteger(val, min < max ? min : max, min < max ? max : min),
-          ).toBeFalsy(),
+          ).toBeFalsy();
+        },
       ),
     ));
 });
 
 describe("forceNever", () => {
   let a: 1 | 2 | 3;
+  // eslint-disable-next-line prefer-const
   a = ((): 1 | 2 | 3 => 3)();
   it("Forces exhausitivity", () => {
     switch (a) {
@@ -211,7 +241,7 @@ describe("forceNever", () => {
         expect(true).toBeTruthy();
         break;
       default:
-        expectTypeOf(forceNever(a)).toMatchTypeOf<never>();
+        expectTypeOf(forceNever(a)).toExtend<never>();
     }
   });
   it("Catches non-exhausitivity", () => {
@@ -224,6 +254,7 @@ describe("forceNever", () => {
         break;
       case 3:
         expect(true).toBeTruthy();
+      // eslint-disable-next-line no-fallthrough
       default:
         //@ts-expect-error Missing break above, so not exhaustive
         expect(() => forceNever(a)).toThrowError(

@@ -36,6 +36,7 @@ interface IRenderedCubeCellTestCase {
   readonly expectedCol: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 describe.skip("FlatCube", async () => {
   const base2x2Cube: DeepReadonly<CubeData> = [
     Array.from({ length: 4 }, _ => 1),
@@ -44,22 +45,6 @@ describe.skip("FlatCube", async () => {
     Array.from({ length: 4 }, _ => 4),
     Array.from({ length: 4 }, _ => 5),
     Array.from({ length: 4 }, _ => 6),
-  ];
-  const base3x3Cube: DeepReadonly<CubeData> = [
-    Array.from({ length: 9 }, _ => 1),
-    Array.from({ length: 9 }, _ => 2),
-    Array.from({ length: 9 }, _ => 3),
-    Array.from({ length: 9 }, _ => 4),
-    Array.from({ length: 9 }, _ => 5),
-    Array.from({ length: 9 }, _ => 6),
-  ];
-  const base4x4Cube: DeepReadonly<CubeData> = [
-    Array.from({ length: 16 }, _ => 1),
-    Array.from({ length: 16 }, _ => 2),
-    Array.from({ length: 16 }, _ => 3),
-    Array.from({ length: 16 }, _ => 4),
-    Array.from({ length: 16 }, _ => 5),
-    Array.from({ length: 16 }, _ => 6),
   ];
 
   const tests: IRenderedCubeCellTestCase[] = [];
@@ -119,7 +104,7 @@ describe.skip("FlatCube", async () => {
           expectedRow: 1,
           expectedCol: 1,
           expectedAction: {
-            type: CubeActionType.RotateCube,
+            type: CubeActionType.FocusCube,
             focusFace: sideId,
           },
         },
@@ -139,6 +124,7 @@ describe.skip("FlatCube", async () => {
     } = testCase;
     const counter = { count: 0 };
     const hook = expectDispatchedAction(expectedAction, counter);
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     const screen = await page.render(
       <RenderedCube
         cubeData={cube}
@@ -147,6 +133,7 @@ describe.skip("FlatCube", async () => {
       />,
     );
 
+    // eslint-disable-next-line @typescript-eslint/await-thenable
     const buttonLocator = await screen.getByRole("button", {
       name: locatorName,
     });
@@ -158,20 +145,24 @@ describe.skip("FlatCube", async () => {
         })
         .toBeVisible();
       await expect.element(buttonLocator).toBeVisible();
+      // eslint-disable-next-line @typescript-eslint/await-thenable
       const parent = await buttonLocator.element().parentElement?.parentElement;
+      // eslint-disable-next-line @typescript-eslint/await-thenable
       await expect(parent).toBeDefined();
-      await expect.element(parent!).toBeVisible();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const safeParent = parent!;
+      await expect.element(safeParent).toBeVisible();
       await expect
-        .element(parent!)
+        .element(safeParent)
         .toHaveAttribute("data-side-id", expectedSide);
       await expect
-        .element(parent!)
+        .element(safeParent)
         .toHaveAttribute("data-row-num", expectedRow);
       await expect
-        .element(parent!)
+        .element(safeParent)
         .toHaveAttribute("data-col-num", expectedCol);
       await expect
-        .element(parent!)
+        .element(safeParent)
         .toHaveAttribute("data-cur-value", expectedSide);
       await buttonLocator.click();
       expect(counter.count).toBe(1);

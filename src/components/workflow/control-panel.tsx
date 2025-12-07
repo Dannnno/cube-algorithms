@@ -61,7 +61,8 @@ export const ControlPanel: React.FC<IControlPanelProps> = props => {
   }, [puzzleCube, cubeHash]);
   useEffect(() => setResetEnabled(cubeHasChanged), [cubeHasChanged]);
   useEffect(
-    () => setResizeEnabled(calculatedSize !== +cubeSize),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    () => setResizeEnabled(calculatedSize !== +(cubeSize as any)),
     [calculatedSize, cubeSize],
   );
 
@@ -84,7 +85,7 @@ export const ControlPanel: React.FC<IControlPanelProps> = props => {
         newSize: cubeSize,
       });
     }
-  }, [cubeSize, dispatch, resizeEnabled, calculatedSize]);
+  }, [cubeSize, dispatch, resizeEnabled, calculatedSize, resizeDispatch]);
 
   return (
     <div className={controlPanelSidebar}>

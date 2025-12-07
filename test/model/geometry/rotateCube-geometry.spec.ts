@@ -43,7 +43,9 @@ describe("rotateCube", () => {
     ));
 });
 
-function getTestCases(baseCube: any): (IRotateCubeTestCase & INamedTestCase)[] {
+function getTestCases(
+  baseCube: DeepReadonly<CubeData>,
+): (IRotateCubeTestCase & INamedTestCase)[] {
   const testCases = [
     {
       axis: "X",

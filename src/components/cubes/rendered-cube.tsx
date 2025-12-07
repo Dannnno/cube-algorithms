@@ -41,6 +41,7 @@ import styles, {
   threeD,
   top,
 } from "./rendered-cube.module.scss";
+import { Scene } from "./three-cube";
 import { CubeActions } from "./usePuzzleCube";
 
 function asCssVars(
@@ -80,6 +81,8 @@ export const RenderedCube: React.FC<IReactCubeProps> = props => {
     case CubeRenderStyle.ThreeD:
       renderStyleClass = threeD;
       break;
+    case CubeRenderStyle.WebGL:
+      return <Scene {...props} />;
     default:
       forceNever(renderStyle);
   }

@@ -1,4 +1,10 @@
-import { assert, DeepReadonly, forceNever, isBoundedInteger } from "@/common";
+import {
+  assert,
+  DeepReadonly,
+  forceNever,
+  isBoundedInteger,
+  Tuple,
+} from "@/common";
 import {
   assertIsValidCube,
   assertIsValidCubeCell,
@@ -78,6 +84,51 @@ function _at(
 
 function _ix(size: number, row: number, col: number): number {
   return row * size + col;
+}
+
+/**
+ * Get the color on each side of a single sub-cube, based on it's WebGL
+ * coordinates
+ * @param cube The cube data
+ * @param x The X-coordinate, in WebGL
+ * @param y The Y-coordinate, in WebGL
+ * @param z The Z-coordinate, in WebGL
+ * @returns The colors of each side (L, F, R, Ba, T, Bo)
+ */
+export function subCubeColor(
+  cube: DeepReadonly<CubeData>,
+  x: number,
+  y: number,
+  z: number,
+): Tuple<CubeSide | undefined, 6> {
+  const size = getCubeSize(cube);
+  assertIsValidCube(cube, size);
+
+  // We need to figure out what color each side should be when rendering in 3D
+  // WebGL mode. Coordinates of 0, 0, 0 indicate the cube at the bottom-left of
+  // the cube's left side. The Z-axis increases from left-to-right along the
+  // left side, the Y-axis increases vertically along the left side, and the
+  // X-axis increases as you move into the cube (i.e. through it until we reach
+  // the right side).
+  //
+  // We want to figure out what each side of the sub-cube should look like if it
+  // were to be rendered on its own, without the other cubes around it.
+  // We will return this in the normal CubeSide ordering.
+
+  const left = x === 0 ? at_(cube, CubeSide.Left, size - y - 1, z) : undefined;
+  const right =
+    x === size - 1
+      ? at_(cube, CubeSide.Right, size - y - 1, size - x - 1)
+      : undefined;
+  const front =
+    z === size - 1 ? at_(cube, CubeSide.Front, size - y - 1, x) : undefined;
+  const back =
+    z === 0 ? at_(cube, CubeSide.Back, size - y - 1, size - z - 1) : undefined;
+  const top = y === size - 1 ? at_(cube, CubeSide.Top, z, x) : undefined;
+  const bottom =
+    y === 0 ? at_(cube, CubeSide.Bottom, size - z - 1, x) : undefined;
+
+  return [left, front, right, back, top, bottom];
 }
 
 /**

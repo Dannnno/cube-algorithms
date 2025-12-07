@@ -11,6 +11,7 @@ Algorithms and visualizations of how to solve 3D Puzzle Cubes
 - [ ] Circular "chords"
 - [x] Multiple cube sizes (2x2 through 9x9)
 - [ ] Picture/pattern cubes
+- [x] WebGL
 
 ### Algorithm
 

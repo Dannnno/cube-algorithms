@@ -1,47 +1,71 @@
-import { DeepReadonly, forceNever, Tuple } from "@/common";
+import { forceNever } from "@/common";
 import { CubeSide, getCubeSize } from "@/model/cube";
 import { subCubeColor } from "@/model/geometry";
-import { Canvas } from "@react-three/fiber";
-import React, { useCallback, useRef, useState } from "react";
+import { ArcballControls } from "@react-three/drei";
+import { Canvas, ThreeEvent, useFrame, useThree } from "@react-three/fiber";
+import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { IReactCubeProps } from "./generic-cube";
-import { usePuzzleCubeHash } from "./usePuzzleCube";
 
 export const Scene: React.FC<IReactCubeProps> = props => {
   const { cubeData } = props;
-  usePuzzleCubeHash(cubeData);
   const boxes: React.ReactElement[] = [];
   const cubeSize = getCubeSize(cubeData);
-  const scale = 1; //6 / cubeSize;
+  const scale = 1;
   const startAt = Math.floor(cubeSize / 2);
+  const [selectedNode, setSelectedNode] = useState("");
+  const onPointerMiss = useCallback(() => setSelectedNode(""), []);
+
   for (let i = 0; i < cubeSize; ++i) {
     const x = i - startAt;
     for (let j = 0; j < cubeSize; ++j) {
       const y = j - startAt;
       for (let k = 0; k < cubeSize; ++k) {
         const z = k - startAt;
+        const [left, front, right, back, top, bottom] = subCubeColor(
+          cubeData,
+          i,
+          j,
+          k,
+        );
         boxes.push(
           <Box
-            scenePosition={[scale * x, scale * y, scale * z]}
-            sideColors={subCubeColor(cubeData, i, j, k)}
+            left={left}
+            front={front}
+            right={right}
+            back={back}
+            top={top}
+            bottom={bottom}
+            xPos={x}
+            yPos={y}
+            zPos={z}
             scale={scale}
+            key={`${i}${j}${k}`}
+            id={`${i}${j}${k}`}
+            isSelected={selectedNode === `${i}${j}${k}`}
+            setSelectedNode={setSelectedNode}
           />,
         );
       }
     }
   }
+  const cameraPosition = useMemo(
+    () =>
+      [
+        Math.sqrt(cubeSize ** 2 + cubeSize ** 2),
+        1.25 * cubeSize,
+        1.5 * cubeSize,
+      ] as const,
+    [cubeSize],
+  );
+
+  //   frameloop="demand"
   return (
     <Canvas
-      frameloop="demand"
-      camera={{
-        position: [
-          Math.sqrt(cubeSize ** 2 + cubeSize ** 2),
-          1.25 * cubeSize,
-          1.5 * cubeSize,
-        ],
-        fov: 60,
-      }}
+      camera={{ position: cameraPosition, fov: 60 }}
+      onPointerMissed={onPointerMiss}
     >
+      <ArcballControls />
       <CanvasHelpers cubeSize={cubeSize} />
       <ambientLight intensity={Math.PI / 2} />
       <spotLight
@@ -65,7 +89,8 @@ const CanvasHelpers: React.FC<{ readonly cubeSize: number }> = ({
   cubeSize,
 }) => {
   const [showHelpers, setShowHelpers] = useState(false);
-  //   const camera = useThree(state => state.camera);
+  const camera = useThree(state => state.camera);
+  const gl = useThree(state => state.gl);
   return (
     <>
       {showHelpers && (
@@ -81,73 +106,142 @@ const CanvasHelpers: React.FC<{ readonly cubeSize: number }> = ({
   );
 };
 
-type Position = DeepReadonly<Tuple<number, 3>>;
-
 const Box: React.FC<{
-  readonly scenePosition: Position;
-  readonly sideColors: DeepReadonly<Tuple<CubeSide | undefined, 6>>;
+  readonly setSelectedNode: React.Dispatch<React.SetStateAction<string>>;
+  readonly isSelected: boolean;
+  readonly id: string;
+
   readonly scale: number;
-}> = props => {
-  const { scenePosition, sideColors, scale } = props;
-  const boxRef = useRef<THREE.BoxGeometry>(null);
 
-  const onUpdate = useCallback(
-    (box: THREE.BoxGeometry) => {
-      box.toNonIndexed();
-      const position = box.getAttribute("position");
-      const numVertices = position.count / 6;
-      const cubeColors = translateSidesToColors(sideColors);
+  readonly front: CubeSide | undefined;
+  readonly back: CubeSide | undefined;
+  readonly left: CubeSide | undefined;
+  readonly right: CubeSide | undefined;
+  readonly top: CubeSide | undefined;
+  readonly bottom: CubeSide | undefined;
 
-      const colors = [];
-      for (let i = 0; i < 6; ++i) {
-        const color = new THREE.Color(cubeColors[i]);
-        for (let j = 0; j < numVertices; ++j) {
-          colors.push(color.r, color.g, color.b);
+  readonly xPos: number;
+  readonly yPos: number;
+  readonly zPos: number;
+}> = memo(
+  ({
+    setSelectedNode,
+    isSelected,
+    id,
+    scale,
+    front,
+    back,
+    left,
+    right,
+    top,
+    bottom,
+    xPos,
+    yPos,
+    zPos,
+  }) => {
+    const [actualScale, setActualScale] = useState(scale);
+    const [lastPoint, setLastPoint] = useState<THREE.Vector2 | null>(null);
+    const onPointerDown = useCallback((event: ThreeEvent<PointerEvent>) => {
+      event.stopPropagation();
+      setSelectedNode(id);
+      console.log("DOWN", event.pointer);
+      setLastPoint(event.pointer.clone());
+    }, []);
+    const onPointerUp = useCallback(
+      (event: ThreeEvent<PointerEvent>) => {
+        if (!lastPoint) {
+          return;
         }
+        event.stopPropagation();
+        console.log(
+          "UP",
+          lastPoint,
+          event.pointer,
+          event.pointer.distanceTo(lastPoint),
+        );
+        setLastPoint(null);
+      },
+      [lastPoint],
+    );
+    const meshRef = useRef<THREE.Mesh>(null);
+    const lineRef = useRef<THREE.LineSegments>(null);
+
+    useFrame((_state, delta) => {
+      if (!isSelected) {
+        return;
       }
-      box.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-    },
-    [sideColors],
-  );
+      meshRef.current!.rotateX(delta);
+      lineRef.current!.rotateX(delta);
+    });
 
-  return (
-    <>
-      <mesh position={scenePosition} scale={scale}>
-        <boxGeometry ref={boxRef} args={[1, 1, 1]} onUpdate={onUpdate} />
-        <meshPhongMaterial vertexColors />
-      </mesh>
-      <lineSegments position={scenePosition} scale={scale}>
-        <edgesGeometry args={[boxRef.current, 1]} />
-        <lineBasicMaterial color={"black"} />
-      </lineSegments>
-    </>
-  );
-};
+    const scenePosition = [
+      actualScale * xPos,
+      actualScale * yPos,
+      actualScale * zPos,
+    ] as const;
+    const boxGeometry = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
+    const position = boxGeometry.getAttribute("position");
+    const numVertices = position.count / 6;
+    const color = new THREE.Color();
+    const colorOrder = [right, left, top, bottom, front, back];
 
-function translateSidesToColors(
-  sides: DeepReadonly<Tuple<CubeSide | undefined, 6>>,
-): Tuple<THREE.Color, 6> {
-  const [left, front, right, back, top, bottom] = sides;
-  const swizzled = [right, left, top, bottom, front, back];
-  return swizzled.map(translateSideToColor) as Tuple<THREE.Color, 6>;
-}
+    const colors = [];
+    for (let i = 0; i < 6; ++i) {
+      color.set(translateSideToColor(colorOrder[i]));
+      for (let j = 0; j < numVertices; ++j) {
+        colors.push(color.r, color.g, color.b);
+      }
+    }
+    boxGeometry.setAttribute(
+      "color",
+      new THREE.Float32BufferAttribute(colors, 3),
+    );
 
-function translateSideToColor(side: CubeSide | undefined): THREE.Color {
+    return (
+      <>
+        <mesh
+          ref={meshRef}
+          position={scenePosition}
+          scale={actualScale}
+          geometry={boxGeometry}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+        >
+          <meshBasicMaterial vertexColors />
+        </mesh>
+        <lineSegments
+          ref={lineRef}
+          position={scenePosition}
+          scale={actualScale}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+        >
+          <edgesGeometry args={[boxGeometry, 1]} />
+          <lineBasicMaterial color="black" />
+        </lineSegments>
+      </>
+    );
+  },
+);
+
+function translateSideToColor(
+  side: CubeSide | undefined,
+): THREE.ColorRepresentation {
   switch (side) {
     case CubeSide.Front:
-      return new THREE.Color("blue");
+      return "blue";
     case CubeSide.Back:
-      return new THREE.Color("green");
+      return "green";
     case CubeSide.Left:
-      return new THREE.Color("red");
+      return "red";
     case CubeSide.Right:
-      return new THREE.Color(0xf28c28);
+      return 0xf28c28;
     case CubeSide.Top:
-      return new THREE.Color("white");
+      return "white";
     case CubeSide.Bottom:
-      return new THREE.Color("yellow");
+      return "yellow";
     case undefined:
-      return new THREE.Color("black");
+      return "black";
     default:
       forceNever(side);
   }

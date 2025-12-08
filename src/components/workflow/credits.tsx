@@ -134,6 +134,17 @@ export const Credits: React.FC<{}> = _ => {
         "https://game-icons.net/1x1/delapouite/cube.html",
       ],
     },
+    {
+      creator: ["Lorc", "https://lorcblog.blogspot.com/"],
+      retrievedFrom: ["game-icons.net", "https://game-icons.net"],
+      license: License.CcBy30,
+      type: CreditType.Image,
+      resource: [
+        "/src/assets/ice-cube.svg",
+        "Ice cube",
+        "https://game-icons.net/1x1/lorc/ice-cube.html",
+      ],
+    },
   ];
   const grouped = groupCredits(creditList);
 

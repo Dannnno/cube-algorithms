@@ -139,7 +139,7 @@ export const ControlPanel: React.FC<IControlPanelProps> = props => {
           {
             value: CubeRenderStyle.WebGL,
             label: `WebGL`,
-            iconKey: "cube",
+            iconKey: "ice-cube",
           },
         ]}
       />
